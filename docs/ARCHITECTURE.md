@@ -72,7 +72,7 @@ Every transition has a **trigger**, a **guard**, and an **actor**:
 | Verifying | Building | issues_found | none | Pilot |
 | Verifying | Blocked | blocked_by_external | none | Captain |
 | Blocked | Queued | blocker_resolved | none | Captain |
-| PR Ready | Done | pr_merged | none | Developer (ONLY) |
+| PR Ready | Done | pr_merged | ci_passes | Developer (ONLY) |
 | PR Ready | Building | dev_requested_changes | none | Pilot |
 
 > **Note on rework transitions:** For Verifying → Building, the Reviewer identifies issues but the Pilot triggers the state transition. For PR Ready → Building, the Developer requests changes but the Pilot executes the board transition. This preserves the single point of state management invariant.

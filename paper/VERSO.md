@@ -31,7 +31,7 @@ Traditional methodologies assume:
 - **Communication is expensive** -- AI has perfect memory and infinite patience
 - **Context switching has cost** -- each agent session is isolated by design
 
-None of these assumptions hold. Applying coordination-era methodologies to agentic development is a mismatch — not because those methodologies are bad, but because they solve a different problem. Scrum optimizes for human synchronization. VERSO optimizes for decision throughput. What we need is a framework designed from scratch for the world we actually live in.
+None of these assumptions hold. Applying coordination-era methodologies to agentic development is a mismatch -- not because those methodologies are bad, but because they solve a different problem. Scrum optimizes for human synchronization. VERSO optimizes for decision throughput. What we need is a framework designed from scratch for the world we actually live in.
 
 ---
 
@@ -99,7 +99,7 @@ The Reviewer writes an informational comment on the PR. Not a formal GitHub appr
 
 *"Deliver it."*
 
-- **DELIVER**: The developer merges the PR. This is the ONLY action that closes a work item. No agent ever closes issues manually -- `pr_merged` is the sole trigger.
+- **DELIVER**: The developer merges the PR. This is the only action that completes a work item as Done. No agent ever closes issues manually -- `pr_merged` is the sole trigger.
 - **LAUNCH**: Release tagging, changelog generation (automated from PR descriptions), documentation updates
 
 ### O -- Observe
@@ -133,11 +133,11 @@ The VERSO cycle defines the primary flow. But real projects have concerns that c
 
 ### 4.1 Cross-cutting Concerns
 
-These are quality dimensions that span multiple VERSO phases. They are not separate phases — they are embedded into the existing cycle as gates, checklist items, and configuration.
+These are quality dimensions that span multiple VERSO phases. They are not separate phases -- they are embedded into the existing cycle as gates, checklist items, and configuration.
 
 **CI/CD Integration**
 
-CI/CD is not a phase — it is the infrastructure that enforces transitions. In VERSO, the CI pipeline is a transition guard: the state machine cannot move from Building to Verifying unless CI passes. The Builder agent is responsible for ensuring the pipeline is green before creating a PR. The Reviewer agent validates that all checks pass before writing its review comment.
+CI/CD is not a phase -- it is the infrastructure that enforces transitions. In VERSO, the CI pipeline is a transition guard: the state machine cannot move from Building to Verifying unless CI passes. The Builder agent is responsible for ensuring the pipeline is green before creating a PR. The Reviewer agent validates that all checks pass before writing its review comment.
 
 Configuration in `.verso/config.yaml`:
 
@@ -172,7 +172,7 @@ quality:
 
 ### 4.2 Parallel Processes
 
-These processes run continuously alongside the VERSO cycle. They are not triggered by work items — they generate work items.
+These processes run continuously alongside the VERSO cycle. They are not triggered by work items -- they generate work items.
 
 **Monitoring and Analytics (Post-Ship)**
 
@@ -194,7 +194,7 @@ dependencies:
 
 **Feature Flags**
 
-Feature flags enable partial releases — shipping code that is not yet active for all users. In VERSO, feature flags are an Engineer-phase decision: the Pilot determines whether a work item requires a flag based on risk, size, or the developer's preference. The Builder implements the flag. Ship activates the flag for a percentage of users. Observe monitors the rollout. Full activation is a separate Chore-type work item.
+Feature flags enable partial releases -- shipping code that is not yet active for all users. In VERSO, feature flags are an Engineer-phase decision: the Pilot determines whether a work item requires a flag based on risk, size, or the developer's preference. The Builder implements the flag. Ship activates the flag for a percentage of users. Observe monitors the rollout. Full activation is a separate Chore-type work item.
 
 ### 4.3 External Entry Points
 
@@ -260,7 +260,7 @@ The Automation Layer is that bridge. It defines three distinct layers that separ
 └─────────────────────────────────────────────┘
 ```
 
-The Philosophy Layer is this paper. The Contracts Layer is defined below. The Implementation Layer is deliberately excluded — it belongs to the community, to blog posts, to recipes, not to the framework.
+The Philosophy Layer is this paper. The Contracts Layer is defined below. The Implementation Layer is deliberately excluded -- it belongs to the community, to blog posts, to recipes, not to the framework.
 
 ### 5.2 Phase Contracts
 
@@ -280,9 +280,9 @@ A tool is VERSO-compatible if it respects the contracts of the phase it operates
 
 Examples of contract compliance:
 
-- **Review phase:** CodeRabbit, Greptile, a custom LLM script, or a human reviewer — any of these is valid as long as they receive the spec + diff and produce an informational comment without auto-merging (unless Autonomy Level 4 is configured for the work type).
-- **Observe phase:** LinearB, a GitHub Action that posts weekly metrics, or a spreadsheet — any of these is valid as long as they track the defined metrics and feed learnings back to Validate.
-- **Engineer phase:** Claude Code, Cursor, Copilot, Aider, or a junior developer — any of these is valid as long as they receive a spec and produce an isolated PR.
+- **Review phase:** CodeRabbit, Greptile, a custom LLM script, or a human reviewer -- any of these is valid as long as they receive the spec + diff and produce an informational comment without auto-merging (unless Autonomy Level 4 is configured for the work type).
+- **Observe phase:** LinearB, a GitHub Action that posts weekly metrics, or a spreadsheet -- any of these is valid as long as they track the defined metrics and feed learnings back to Validate.
+- **Engineer phase:** Claude Code, Cursor, Copilot, Aider, or a junior developer -- any of these is valid as long as they receive a spec and produce an isolated PR.
 
 The contract is the interface. The tool is the implementation. Implementations are swapped; contracts endure.
 
@@ -346,7 +346,7 @@ Every transition has a **trigger**, a **guard**, and an **actor**:
 | Verifying | Building | issues_found | none | Pilot |
 | Verifying | Blocked | blocked_by_external | none | Captain |
 | Blocked | Queued | blocker_resolved | none | Captain |
-| PR Ready | Done | pr_merged | none | Developer (ONLY) |
+| PR Ready | Done | pr_merged | ci_passes | Developer (ONLY) |
 | PR Ready | Building | dev_requested_changes | none | Pilot |
 
 > **Note on rework transitions:** For Verifying → Building, the Reviewer identifies issues in its review comment, but the Pilot is the sole actor that triggers the state transition. For PR Ready → Building, the Developer requests changes, but the Pilot executes the board transition and re-assigns the Builder. This preserves the invariant that the Pilot is the single point of state management.
@@ -377,7 +377,7 @@ The human. Sets direction, makes decisions, approves quality.
 - Expresses intent in natural language
 - Approves at quality gates (frequency configured via the Autonomy Dial)
 - Merges PRs -- the only irreversible action in the system
-- Never writes code unless they choose to
+- Does not write code. The framework assumes the developer delegates all implementation to Crew agents.
 
 ### The Pilot (AI Orchestrator)
 
@@ -538,6 +538,8 @@ This is where VERSO produces insights no traditional methodology can. Every work
 
 **ROI calculation:**
 
+For this example, we assume a milestone with 22 work items across features, bugs, and chores.
+
 ```
 Example milestone report -- MVP Core (22 items):
 Traditional baseline: $13,500 (180 dev-hours at $75/hr, ~1 month elapsed)
@@ -601,6 +603,8 @@ QA                 checklist    basic plan     QA role       QA team
 Docs required      minimal      moderate       comprehensive full suite
 Autonomy default   2-3          2              1-2           1
 ```
+
+The Pilot maintains a 1:1 ratio with developers at every scale. This is by design -- each developer's intent stream requires a dedicated orchestrator.
 
 ### Role permissions by scale
 
@@ -673,7 +677,7 @@ your-project/
     config.yaml             # Autonomy levels, WIP limits, scale
     board.yaml              # Local board (work items)
     roadmap.yaml            # Milestones and horizons
-    state-machine.yaml      # Transition rules (use the default)
+    state-machine.yaml      # Transition rules (see note below)
     releases.yaml           # Versioning and release rules
     agents/
       pilot/
@@ -693,6 +697,8 @@ your-project/
       pr.md                 # Pull request template
 ```
 
+**Note on `state-machine.yaml`:** The default state machine is designed to cover all standard workflows. Modifying it is an advanced operation that may break framework invariants. Most teams should use the default.
+
 The `.verso/` directory includes a `version` field in `config.yaml` that tracks the VERSO framework version used to generate it. When upgrading VERSO, run `verso migrate` to update configuration files to the latest schema. Breaking changes between versions are documented in the framework changelog.
 
 #### Step 2: Set up your board
@@ -708,7 +714,7 @@ board:
 
 The `local` provider is the default. GitHub Projects and Linear are optional sync targets -- you can push your local board to them at any time via `verso sync`. All VERSO examples work identically regardless of which provider you choose.
 
-When using an external board provider (GitHub Projects, Linear), the external provider is the source of truth for item state. The `.verso/` configuration defines the rules; the board provider holds the live state. The Pilot reads from and writes to the configured provider. If state conflicts arise between providers, the board provider wins. Running multiple board providers simultaneously is not supported — pick one per project.
+When using an external board provider (GitHub Projects, Linear), the external provider is the source of truth for item state. The `.verso/` configuration defines the rules; the board provider holds the live state. The Pilot reads from and writes to the configured provider. If state conflicts arise between providers, the board provider wins. Running multiple board providers simultaneously is not supported -- pick one per project.
 
 #### Step 3: Start working
 
