@@ -1,10 +1,10 @@
 # VERSO Project Roadmap
 
-This is the VERSO project's own roadmap, structured using VERSO's three-horizon model.
+This is the VERSO project's own roadmap, structured using VERSO's three-horizon roadmap.
 
 ## Repository Structure
 
-VERSO is split across three repositories:
+VERSO is split across two repositories:
 
 - [`useverso/verso`](https://github.com/useverso/verso) — The framework paper, documentation, and brand assets
 - [`useverso/cli`](https://github.com/useverso/cli) — CLI tool for initializing and managing VERSO projects
@@ -13,14 +13,14 @@ VERSO is split across three repositories:
 ## NOW -- Foundation
 The minimum viable framework: paper, templates, and repository structure.
 
-- [x] Framework paper (10 chapters + 3 subsections)
-- [x] OSS template files (.verso/ directory)
+- [x] Framework paper (13 sections)
+- [x] OSS template files (.verso/ directory — Refactor uses the Feature template)
 - [x] README as landing page
 - [x] GitHub repos (`useverso/verso`, `useverso/cli`)
 - [ ] CLI tool (`npx useverso init`) — [`useverso/cli`](https://github.com/useverso/cli)
-- [ ] Brand assets (logo, colors, typography)
+- [ ] Brand assets (logo, colors, typography) — partial; `brand/` has header image, still needs logo and typography
 
-**Milestone:** "A developer can read the paper, get the template from useverso/template, and add .verso/ to their project."
+**Milestone:** "A developer can read the paper, run `npx @useverso/cli init`, and add .verso/ to their project."
 
 ---
 
@@ -30,7 +30,7 @@ Public release and developer adoption.
 
 - [ ] Landing page at useverso.dev
 - [ ] CLI published to NPM as @useverso/cli
-- [ ] Update OSS templates with all config sections from paper (ci, quality, dependencies, incidents)
+- [ ] Update OSS templates with all config.yaml sections from the paper
 - [ ] Example project showing VERSO in action
 - [ ] Launch: Hacker News, Reddit, Twitter, Dev.to
 
