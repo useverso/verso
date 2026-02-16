@@ -85,12 +85,7 @@ This scaffolds the `.verso/` directory into your project. Your project now has:
 ├── state-machine.yaml
 ├── releases.yaml
 ├── agents/
-│   ├── pilot/
-│   │   ├── core.md
-│   │   ├── solo-dev.md
-│   │   ├── team-dev.md
-│   │   ├── tech-lead.md
-│   │   └── pm.md
+│   ├── pilot.md          # composed from core + role profile during init
 │   ├── builder.md
 │   └── reviewer.md
 └── templates/
@@ -152,7 +147,7 @@ The human. Sets direction, makes decisions, approves quality. Expresses intent i
 
 ### Pilot (AI Orchestrator)
 
-The developer's conversational partner. Classifies intent automatically, routes work to the correct VERSO phase, enforces the state machine (transitions, guards, WIP limits), and spawns agents. The Pilot **never writes code itself** — it orchestrates. In the reference implementation, the Pilot loads a dedicated system prompt from `.verso/agents/pilot/` with role-specific variants (solo-dev, team-dev, tech-lead, PM).
+The developer's conversational partner. Classifies intent automatically, routes work to the correct VERSO phase, enforces the state machine (transitions, guards, WIP limits), and spawns agents. The Pilot **never writes code itself** — it orchestrates. In the reference implementation, the Pilot loads `.verso/agents/pilot.md` as its system prompt. The CLI composes this file from a shared core module and a role-specific profile (solo-dev, team-dev, tech-lead, or PM) during `verso init`.
 
 ### Crew (AI Agents)
 

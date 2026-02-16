@@ -423,7 +423,7 @@ The developer's conversational partner. The main AI session that runs continuous
 - Reports status proactively
 - **Never writes code itself**
 
-In the reference implementation, the Pilot loads a dedicated system prompt from `.verso/agents/pilot/` (e.g., `solo-dev.md` for solo developers, `tech-lead.md` for tech leads) defining routing rules, autonomy configuration, and state machine enforcement. A shared `core.md` file contains the common logic all Pilot variants use.
+In the reference implementation, the Pilot loads `.verso/agents/pilot.md` as its system prompt. This file is composed by the CLI during `verso init` from a shared core module and a role-specific profile (solo-dev, team-dev, tech-lead, or PM) that defines routing rules, autonomy configuration, and state machine enforcement. The modular source files are internal to the CLI -- users receive a single composed `pilot.md`.
 
 > **Note on prompt updates:** The Pilot maintains agent prompts and configuration as part of the Observe feedback loop. Prompt updates are operational configuration, not code. When Observe produces learnings, the Captain approves prompt changes and the Pilot applies them to `.verso/agents/` files.
 
@@ -672,7 +672,7 @@ In a team, each developer has their own Pilot with role-appropriate permissions:
 - **Team Dev's Pilot**: Engineer + Review -- build assigned tasks, create PRs
 - **QA's Pilot**: Review phase -- testing, verification, sign-off
 
-In the reference implementation, each role loads a different prompt from `.verso/agents/pilot/` (e.g., `team-dev.md`, `tech-lead.md`, `pm.md`), all sharing `core.md` for common logic. Same state machine, different access levels.
+In the reference implementation, each role gets a different `pilot.md` composed by the CLI from the shared core module and the appropriate role profile. The CLI maintains these modular sources internally and composes them into a single `pilot.md` during `verso init`. Same state machine, different access levels.
 
 ### Documentation expectations by scale
 
@@ -721,12 +721,7 @@ your-project/
     state-machine.yaml      # Transition rules (see note below)
     releases.yaml           # Versioning and release rules
     agents/
-      pilot/
-        core.md             # Shared Pilot logic
-        solo-dev.md         # Solo developer Pilot prompt
-        team-dev.md         # Team developer Pilot prompt
-        tech-lead.md        # Tech lead Pilot prompt
-        pm.md               # PM/PO Pilot prompt
+      pilot.md              # Composed from core + role profile during init
       builder.md            # Builder agent instructions
       reviewer.md           # Reviewer agent instructions
     templates/
@@ -768,8 +763,8 @@ The Pilot takes it from there.
 ### For teams
 
 1. Set your scale in `config.yaml`: `solo`, `small-team`, `startup`, or `enterprise`
-2. Create role-specific Pilot prompts in `.verso/agents/pilot/`
-3. Each team member loads their role's prompt
+2. Run `verso init` for each team member's role -- the CLI composes a role-specific `pilot.md` from the shared core and the selected profile
+3. Each team member loads their composed `pilot.md`
 4. Set up a shared board -- use `provider: github` or `provider: linear` in `config.yaml`, then run `verso sync` to keep local and remote boards in sync
 5. Work flows through V-E-R-S-O with role-appropriate gates
 

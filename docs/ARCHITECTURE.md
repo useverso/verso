@@ -199,12 +199,7 @@ The `.verso/` directory is the single unit of adoption. Copying it into any repo
 ├── state-machine.yaml   # States, transitions, guards, shortcuts per work type
 ├── releases.yaml        # Semver rules, changelog config
 ├── agents/
-│   ├── pilot/
-│   │   ├── core.md      # Shared Pilot logic
-│   │   ├── solo-dev.md  # Solo developer Pilot prompt
-│   │   ├── team-dev.md  # Team developer Pilot prompt
-│   │   ├── tech-lead.md # Tech lead Pilot prompt
-│   │   └── pm.md        # PM/PO Pilot prompt
+│   ├── pilot.md         # Composed from core + role profile during init
 │   ├── builder.md       # Implementation: worktree, code, tests, PR
 │   └── reviewer.md      # Review: diff analysis, spec validation, comment
 └── templates/
