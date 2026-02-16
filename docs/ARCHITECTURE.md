@@ -105,6 +105,28 @@ VERSO adapts to team size:
 | **Startup** | 5-15 devs | 1 AI per team | Dedicated crews | Team-level config |
 | **Enterprise** | 15+ devs | Multiple pilots | Specialized crews | Org-level governance |
 
+### Automation Layer
+
+VERSO separates durable decisions from disposable tooling through three layers.
+
+| Layer | Scope | Stability | Ownership |
+|-------|-------|-----------|-----------|
+| **Philosophy** | Decision model, state machine, roles, autonomy dial | Stable across years | Framework core |
+| **Contracts** | Required inputs, outputs, and invariants per phase | Stable across quarters | Framework core |
+| **Implementation** | Specific tools, platforms, agents | Changes frequently | Community / user choice |
+
+#### Phase Contracts
+
+| Phase | Required Inputs | Required Outputs | Key Invariants |
+|-------|----------------|-----------------|----------------|
+| Validate | Raw idea, user feedback, or feature request | Spec with acceptance criteria, work type classification, shortcut path | No work starts without acceptance criteria. Ideas can die here. |
+| Engineer | Approved spec with acceptance criteria | One isolated PR per work item (code + tests + docs) | Implementation happens in isolation (worktree/branch). Agent receives spec, not verbal instructions. |
+| Review | Diff + original spec + acceptance criteria | Informational review comment with pass/fail assessment | Evaluates against spec, not subjective preferences. Never auto-approves or auto-merges. |
+| Ship | Reviewed PR + passing CI | Merged code on main | Only a human merges. Single irreversible action in the cycle. |
+| Observe | Production data, cycle metrics, cost data | Updated dashboard, retrospective notes, agent prompt improvements | Learnings feed back to Validate. Metrics include agentic-specific costs (tokens, API calls, dollars per work item). |
+
+A tool is VERSO-compatible if it respects the contracts of the phase it operates in.
+
 ---
 
 ## OSS Template Structure

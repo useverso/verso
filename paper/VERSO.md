@@ -6,6 +6,8 @@
 
 *The first development methodology designed for developers working with AI coding agents.*
 
+> **Design Principle:** VERSO does not prescribe tools. It defines the decision model. Tools are ephemeral; the framework is durable. Any AI coding agent, any CI/CD platform, any code review tool can implement VERSO's phases and contracts.
+
 ---
 
 ## 1. The Problem
@@ -233,7 +235,62 @@ Dependency vulnerabilities, certificate expirations, infrastructure alerts, and 
 
 ---
 
-## 4. The State Machine
+## 4. The Automation Layer
+
+VERSO operates at the philosophy level. It defines decisions, not implementations. But philosophy needs a bridge to reality.
+
+The Automation Layer is that bridge. It defines three distinct layers that separate what is durable from what is disposable.
+
+### 4.1 Three Layers
+
+```
+┌─────────────────────────────────────────────┐
+│           Philosophy Layer                   │
+│  Decision model, state machine, roles,       │
+│  autonomy dial, shortcuts by work type       │
+│  → Agnostic, stable, durable                │
+├─────────────────────────────────────────────┤
+│           Contracts Layer                    │
+│  What each phase requires as input,          │
+│  what it must produce as output,             │
+│  what invariants it must preserve            │
+│  → Defines WHAT, not HOW or WITH WHAT       │
+├─────────────────────────────────────────────┤
+│        Implementation Layer                  │
+│  Specific tools, platforms, agents           │
+│  → Changes every quarter. Out of scope.     │
+└─────────────────────────────────────────────┘
+```
+
+The Philosophy Layer is this paper. The Contracts Layer is defined below. The Implementation Layer is deliberately excluded — it belongs to the community, to blog posts, to recipes, not to the framework.
+
+### 4.2 Phase Contracts
+
+Each VERSO phase defines a contract: required inputs, expected outputs, and invariants that must hold.
+
+| Phase | Inputs | Outputs | Invariants |
+|-------|--------|---------|------------|
+| **Validate** | Raw idea, user feedback, or feature request | Spec with acceptance criteria, work type classification, shortcut path | No work begins without acceptance criteria. Ideas can die here. |
+| **Engineer** | Approved spec with acceptance criteria | One PR per work item with code, tests, and docs | Implementation happens in isolation (worktree/branch). The agent receives the spec, not verbal instructions. |
+| **Review** | PR diff + original spec + acceptance criteria | Informational review comment with pass/fail assessment | The reviewer evaluates against the spec, not against subjective preferences. Never auto-approves. Never auto-merges. |
+| **Ship** | Reviewed PR with passing CI | Merged code on main branch | Only a human merges. This is the single irreversible action in the cycle. |
+| **Observe** | Production data, cycle metrics, cost data | Updated metrics dashboard, retrospective notes, agent prompt improvements | Learnings feed back into Validate. Metrics include agentic-specific costs (tokens, API calls, dollars per work item). |
+
+### 4.3 Contract Compliance
+
+A tool is VERSO-compatible if it respects the contracts of the phase it operates in. The framework does not care which tool fulfills the contract.
+
+Examples of contract compliance:
+
+- **Review phase:** CodeRabbit, Greptile, a custom LLM script, or a human reviewer — any of these is valid as long as they receive the spec + diff and produce an informational comment without auto-merging.
+- **Observe phase:** LinearB, a GitHub Action that posts weekly metrics, or a spreadsheet — any of these is valid as long as they track the defined metrics and feed learnings back to Validate.
+- **Engineer phase:** Claude Code, Cursor, Copilot, Aider, or a junior developer — any of these is valid as long as they receive a spec and produce an isolated PR.
+
+The contract is the interface. The tool is the implementation. Implementations are swapped; contracts endure.
+
+---
+
+## 5. The State Machine
 
 VERSO is governed by a formal finite state machine. This is what prevents the inconsistencies and dropped-ball failures that plague ad-hoc agentic workflows.
 
@@ -295,7 +352,7 @@ WIP limits prevent the system from producing more output than the developer can 
 
 ---
 
-## 5. Roles
+## 6. Roles
 
 VERSO has exactly three roles. This is deliberate.
 
@@ -346,7 +403,7 @@ Intent classification happens in the Pilot's system prompt via routing rules, no
 
 ---
 
-## 6. The Autonomy Dial
+## 7. The Autonomy Dial
 
 Not all decisions need human approval. The Autonomy Dial is a per-work-type configuration that controls how much trust the developer places in the AI:
 
@@ -386,7 +443,7 @@ The Autonomy Dial creates a spectrum from paranoid oversight to full delegation.
 
 ---
 
-## 7. Milestones and Roadmap
+## 8. Milestones and Roadmap
 
 ### Why sprints fail for agentic development
 
@@ -435,7 +492,7 @@ The Pilot is milestone-aware at all times: it prioritizes work that closes miles
 
 ---
 
-## 8. Metrics and ROI
+## 9. Metrics and ROI
 
 ### What to measure
 
@@ -496,7 +553,7 @@ Learnings are incorporated into Builder and Reviewer prompts. The system gets sm
 
 ---
 
-## 9. Scaling
+## 10. Scaling
 
 VERSO was designed for solo developers but scales without changing its core. The state machine stays the same. What changes is roles, permissions, documentation requirements, and ceremony level.
 
@@ -548,7 +605,7 @@ Each role loads a different prompt from `.verso/agents/pilot/` (e.g., `team-dev.
 
 ---
 
-## 10. Getting Started
+## 11. Getting Started
 
 ### For solo developers
 
@@ -630,6 +687,10 @@ The Pilot takes it from there.
 
 ---
 
-*Crafted with ❤️ by [Boudy de Geer](https://linkedin.com/in/boudydegeer)*
+<p align="center">
+  Crafted with ❤️ by <a href="https://boudydegeer.com">Boudy de Geer</a>
+</p>
 
-[LinkedIn](https://linkedin.com/in/boudydegeer) · [X/Twitter](https://x.com/boudydegeer)
+<p align="center">
+  <a href="https://linkedin.com/in/boudydegeer">LinkedIn</a> · <a href="https://x.com/boudydegeer">X/Twitter</a>
+</p>

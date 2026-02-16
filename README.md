@@ -226,7 +226,7 @@ MIT
 ---
 
 <p align="center">
-  Crafted with ❤️ by <a href="https://linkedin.com/in/boudydegeer">Boudy de Geer</a>
+  Crafted with ❤️ by <a href="https://boudydegeer.com">Boudy de Geer</a>
 </p>
 
 <p align="center">
