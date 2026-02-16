@@ -213,7 +213,7 @@ This closes the loop: Ship → Observe → monitoring detects issue → new work
 
 **Dependency Management**
 
-Dependencies are a continuous background process. Tools like Dependabot or Renovate auto-generate PRs for dependency updates. In VERSO, these enter the board as Chore-type work items with autonomy level 4 (auto) by default. If CI passes, the Pilot can auto-merge without developer intervention. If CI fails, the item escalates to the developer.
+Dependencies are a continuous background process. Tools like Dependabot or Renovate auto-generate PRs for dependency updates. In VERSO, these enter the board as Chore-type work items with autonomy level 4 (auto) by default. If CI passes, the Pilot (the AI orchestrator -- see Section 8) can auto-merge without developer intervention. If CI fails, the item escalates to the developer.
 
 ```yaml
 dependencies:
@@ -243,7 +243,7 @@ At solo dev scale, the developer forwards feedback to the Pilot conversationally
 
 **Incident Response**
 
-When production goes down, speed matters more than process. Hotfixes follow the shortcut path defined in Section 3 (E - R - S). The Pilot auto-captures the incident as a Hotfix work item and fast-tracks it into Engineer.
+When production goes down, speed matters more than process. Hotfixes follow the shortcut path defined in Section 4 (E - R - S). The Pilot auto-captures the incident as a Hotfix work item and fast-tracks it into Engineer.
 
 Incident severity can override autonomy settings:
 
@@ -354,7 +354,7 @@ Mapping to VERSO phases:
 | Ship | Done (merged/released) |
 | Observe | Periodic activity, not a board state |
 
-**Blocked**: A work item that is waiting on an external dependency or factor outside the team's control (e.g., a third-party API not yet available, a pending decision from a stakeholder, a dependency on another team's deliverable). The Captain moves items to Blocked when progress cannot continue regardless of effort. When the blocker is resolved, the item returns to Queued for re-prioritization.
+**Blocked**: A work item that is waiting on an external dependency or factor outside the team's control (e.g., a third-party API not yet available, a pending decision from a stakeholder, a dependency on another team's deliverable). The Captain (the human developer -- see Section 8) identifies blockers and directs the Pilot to transition items to Blocked when progress cannot continue regardless of effort. When the blocker is resolved, the item returns to Queued for re-prioritization.
 
 **Cancelled**: Cancelled is a terminal state. Once a work item is cancelled, it cannot be reopened or transitioned to any other state. If a previously cancelled idea becomes relevant again, create a new work item and reference the original for context continuity. Re-validating with fresh context is preferable to resurrecting stale decisions.
 
@@ -377,7 +377,7 @@ Every transition has a **trigger**, a **guard**, and an **actor**:
 | Verifying | Building | issues_found | none | Pilot |
 | Verifying | Blocked | blocked_by_external | none | Captain |
 | Blocked | Queued | blocker_resolved | none | Captain |
-| PR Ready | Done | pr_merged | ci_passes | Developer (ONLY) |
+| PR Ready | Done | pr_merged | ci_passes | Developer (at autonomy levels 1-3) or auto-merge (at level 4) |
 | PR Ready | Building | dev_requested_changes | none | Pilot |
 
 > **Note on rework transitions:** For Verifying → Building, the Reviewer identifies issues in its review comment, but the Pilot is the sole actor that triggers the state transition. For PR Ready → Building, the Developer requests changes, but the Pilot executes the board transition and re-assigns the Builder. This preserves the invariant that the Pilot is the single point of state management.
@@ -385,6 +385,8 @@ Every transition has a **trigger**, a **guard**, and an **actor**:
 **The golden rule: no agent can skip states.** The Pilot enforces this. Only `pr_merged` triggers Done. No agent ever closes issues manually.
 
 **Blocked items must specify a reason.** The Pilot tracks blocked items and alerts the Captain when blockers are resolved.
+
+**Retry exhaustion:** When build retries are exhausted (default: 3 attempts), the Pilot transitions the item to Blocked with reason "max retries exceeded" and alerts the Captain. The Captain can then refine the spec and reset retries, manually resolve the issue, or cancel the item. Items should not remain in a perpetual retry loop.
 
 **Note on the Actor column:** The Actor indicates whose action *triggers* the transition, not who updates the board. The Pilot is always the agent that executes board state changes. When the Builder creates a PR (triggering `pr_created`), the Pilot observes this and moves the item from Building to Verifying. When the Reviewer posts a comment (triggering `reviewer_commented`), the Pilot reads the verdict and moves the item accordingly. This ensures a single point of state management and prevents race conditions.
 
@@ -738,7 +740,7 @@ your-project/
 
 **Note on `state-machine.yaml`:** The default state machine is designed to cover all standard workflows. Modifying it is an advanced operation that may break framework invariants. Most teams should use the default.
 
-The `.verso/` directory includes a `version` field in `config.yaml` that tracks the VERSO framework version used to generate it. When upgrading VERSO, run `verso migrate` to update configuration files to the latest schema. Breaking changes between versions are documented in the framework changelog.
+The `.verso/` directory includes a `version` field in `config.yaml` that tracks the VERSO framework version used to generate it. When upgrading VERSO, run `verso migrate` to update configuration files to the latest schema. Breaking changes between versions are documented in the framework changelog. VERSO follows semantic versioning: patch versions add clarifications without changing behavior, minor versions may add new states, transitions, or configuration options with backward-compatible defaults, and major versions may change the state machine or phase contracts and require migration.
 
 #### Step 2: Set up your board
 

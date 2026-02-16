@@ -115,9 +115,9 @@ VERSO adapts to team size:
 | Scale | Captain | Pilot | Crew | Notes |
 |-------|---------|-------|------|-------|
 | **Solo** | 1 dev | 1 AI | 1 Builder + 1 Reviewer | Default setup |
-| **Small team** | 2-5 devs | 1 AI | Shared crew | Multiple captains, one pilot |
-| **Startup** | 5-15 devs | 1 AI per team | Dedicated crews | Team-level config |
-| **Enterprise** | 15+ devs | Multiple pilots | Specialized crews | Org-level governance |
+| **Small team** | 2-5 devs | 1 per dev | Shared crew | Multiple captains, dedicated pilots |
+| **Startup** | 5-15 devs | 1 per dev | Dedicated crews | Team-level config |
+| **Enterprise** | 15+ devs | 1 per dev | Specialized crews | Org-level governance |
 
 ### Automation Layer
 
@@ -150,13 +150,26 @@ The `.verso/` directory is the single unit of adoption. Copying it into any repo
 ```
 .verso/
 ├── config.yaml          # Scale, autonomy, WIP, costs, CI, quality, deps, incidents
+├── board.yaml           # Local board (work items)
 ├── roadmap.yaml         # Vision, horizons (NOW/NEXT/LATER), goal-based milestones
 ├── state-machine.yaml   # States, transitions, guards, shortcuts per work type
 ├── releases.yaml        # Semver rules, changelog config
-└── agents/
-    ├── pilot.md         # Orchestrator: intent classification, routing, state enforcement
-    ├── builder.md       # Implementation: worktree, code, tests, PR
-    └── reviewer.md      # Review: diff analysis, spec validation, comment
+├── agents/
+│   ├── pilot/
+│   │   ├── core.md      # Shared Pilot logic
+│   │   ├── solo-dev.md  # Solo developer Pilot prompt
+│   │   ├── team-dev.md  # Team developer Pilot prompt
+│   │   ├── tech-lead.md # Tech lead Pilot prompt
+│   │   └── pm.md        # PM/PO Pilot prompt
+│   ├── builder.md       # Implementation: worktree, code, tests, PR
+│   └── reviewer.md      # Review: diff analysis, spec validation, comment
+└── templates/
+    ├── issue-feature.md # Template for feature issues
+    ├── issue-bug.md     # Template for bug reports
+    ├── issue-hotfix.md  # Template for hotfix issues
+    ├── issue-chore.md   # Template for chore items
+    ├── spec.md          # Specification template
+    └── pr.md            # Pull request template
 ```
 
 ### config.yaml Sections
