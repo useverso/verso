@@ -138,11 +138,11 @@ Not everything needs the full cycle:
 
 | Work Type | Path | Why |
 |-----------|------|-----|
-| Feature | V - E - R - S - O | Full cycle, full rigor |
-| Bug | V - E - R - S - O | Full cycle. Observe focuses on root cause analysis: was it preventable, and what process change would catch it earlier. |
-| Hotfix | E - R - S | Skip V -- urgency overrides |
-| Chore | E - S | Skip V and R -- low risk. CI serves as minimum quality gate in lieu of Review. |
-| Refactor | V - E - R - S - O | V = scope approval |
+| Feature | V-E-R-S-O | Full cycle, full rigor |
+| Bug | V-E-R-S-O | Full cycle. Observe focuses on root cause analysis: was it preventable, and what process change would catch it earlier. |
+| Hotfix | E-R-S | Skip V -- urgency overrides |
+| Chore | E-S | Skip V and R -- low risk. CI serves as minimum quality gate in lieu of Review. |
+| Refactor | V-E-R-S-O | V = scope approval |
 
 ## Three Roles
 
