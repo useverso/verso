@@ -120,8 +120,7 @@ Not everything needs the full cycle:
 | Type | Path | Rationale |
 |------|------|-----------|
 | Feature | V - E - R - S - O | Full cycle, full rigor |
-| Enhancement | V - E - R - S - O | Full cycle, existing context |
-| Bug | V - E - R - S | Skip O unless systemic |
+| Bug | V - E - R - S - O | Full cycle. Observe focuses on root cause analysis: was it preventable, and what process change would catch it earlier. |
 | Hotfix | E - R - S | Skip V -- urgency overrides |
 | Chore | E - S | Skip V and R -- low risk. CI serves as minimum quality gate in lieu of Review. |
 | Refactor | V - E - R - S - O | V = scope approval |
@@ -303,10 +302,14 @@ stateDiagram-v2
     Captured --> Cancelled : rejected_or_duplicate
     Refined --> Queued : breakdown_complete
     Queued --> Building : builder_spawned
+    Queued --> Blocked : blocked_by_external
     Building --> Verifying : pr_created
     Building --> Queued : build_failed
+    Building --> Blocked : blocked_by_external
     Verifying --> PR_Ready : reviewer_commented
     Verifying --> Building : issues_found
+    Verifying --> Blocked : blocked_by_external
+    Blocked --> Queued : blocker_resolved
     PR_Ready --> Done : pr_merged
     PR_Ready --> Building : dev_requested_changes
 ```
@@ -316,10 +319,14 @@ Mapping to VERSO phases:
 | Phase | States |
 |-------|--------|
 | Validate | Captured, Refined |
-| Engineer | Queued, Building |
+| Engineer | Queued, Building, Blocked |
 | Review | Verifying, PR Ready |
 | Ship | Done (merged/released) |
 | Observe | Periodic activity, not a board state |
+
+**Blocked**: A work item that is waiting on an external dependency or factor outside the team's control (e.g., a third-party API not yet available, a pending decision from a stakeholder, a dependency on another team's deliverable). The Captain moves items to Blocked when progress cannot continue regardless of effort. When the blocker is resolved, the item returns to Queued for re-prioritization.
+
+**Cancelled**: Cancelled is a terminal state. Once a work item is cancelled, it cannot be reopened or transitioned to any other state. If a previously cancelled idea becomes relevant again, create a new work item and reference the original for context continuity. Re-validating with fresh context is preferable to resurrecting stale decisions.
 
 ### Transitions
 
@@ -332,14 +339,22 @@ Every transition has a **trigger**, a **guard**, and an **actor**:
 | Captured | Cancelled | rejected_or_duplicate | none | Pilot |
 | Refined | Queued | breakdown_complete | dev_approved (if autonomy <= 2) | Pilot |
 | Queued | Building | builder_spawned | wip_limit_ok | Pilot |
+| Queued | Blocked | blocked_by_external | none | Captain |
 | Building | Verifying | pr_created | ci_passes | Builder |
 | Building | Queued | build_failed | retries_remaining | Pilot |
+| Building | Blocked | blocked_by_external | none | Captain |
 | Verifying | PR Ready | reviewer_commented | none | Reviewer |
-| Verifying | Building | issues_found | none | Reviewer - Pilot - Builder |
+| Verifying | Building | issues_found | none | Pilot |
+| Verifying | Blocked | blocked_by_external | none | Captain |
+| Blocked | Queued | blocker_resolved | none | Captain |
 | PR Ready | Done | pr_merged | none | Developer (ONLY) |
-| PR Ready | Building | dev_requested_changes | none | Developer - Pilot - Builder |
+| PR Ready | Building | dev_requested_changes | none | Pilot |
+
+> **Note on rework transitions:** For Verifying → Building, the Reviewer identifies issues in its review comment, but the Pilot is the sole actor that triggers the state transition. For PR Ready → Building, the Developer requests changes, but the Pilot executes the board transition and re-assigns the Builder. This preserves the invariant that the Pilot is the single point of state management.
 
 **The golden rule: no agent can skip states.** The Pilot enforces this. Only `pr_merged` triggers Done. No agent ever closes issues manually.
+
+**Blocked items must specify a reason.** The Pilot tracks blocked items and alerts the Captain when blockers are resolved.
 
 **Note on the Actor column:** The Actor indicates whose action *triggers* the transition, not who updates the board. The Pilot is always the agent that executes board state changes. When the Builder creates a PR (triggering `pr_created`), the Pilot observes this and moves the item from Building to Verifying. When the Reviewer posts a comment (triggering `reviewer_commented`), the Pilot reads the verdict and moves the item accordingly. This ensures a single point of state management and prevents race conditions.
 
@@ -377,6 +392,8 @@ The developer's conversational partner. The main AI session that runs continuous
 - **Never writes code itself**
 
 The Pilot loads a dedicated system prompt from `.verso/agents/pilot/` (e.g., `solo-dev.md` for solo developers, `tech-lead.md` for tech leads) defining routing rules, autonomy configuration, and state machine enforcement. A shared `core.md` file contains the common logic all Pilot variants use.
+
+> **Note on prompt updates:** The Pilot maintains agent prompts and configuration as part of the Observe feedback loop. Prompt updates are operational configuration, not code. When Observe produces learnings, the Captain approves prompt changes and the Pilot applies them to `.verso/agents/` files.
 
 ### The Crew (AI Agents)
 
@@ -428,7 +445,6 @@ autonomy:
   hotfix: 3        # fast-track, approve only PR
   refactor: 2      # approve scope + PR
   chore: 4         # auto -- just merge when ready
-  enhancement: 2   # approve spec + PR
 ```
 
 ### Trust builds over time

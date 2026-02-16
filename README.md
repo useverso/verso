@@ -107,7 +107,7 @@ Not everything needs the full cycle:
 | Work Type | Path | Why |
 |-----------|------|-----|
 | Feature | V - E - R - S - O | Full rigor |
-| Bug | V - E - R - S | Skip Observe unless systemic |
+| Bug | V - E - R - S - O | Full cycle. Observe focuses on root cause analysis: was it preventable, and what process change would catch it earlier. |
 | Hotfix | E - R - S | Urgency overrides — skip Validate |
 | Chore | E - S | Low risk — skip Validate and Review |
 

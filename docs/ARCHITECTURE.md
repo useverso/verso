@@ -18,7 +18,7 @@ Each work item flows through the cycle. Shortcuts exist per work type (e.g., Hot
 
 ### State Machine
 
-The state machine has 8 states with guarded transitions:
+The state machine has 9 states with guarded transitions:
 
 ```mermaid
 stateDiagram-v2
@@ -27,10 +27,14 @@ stateDiagram-v2
     Captured --> Cancelled : rejected_or_duplicate
     Refined --> Queued : breakdown_complete
     Queued --> Building : builder_spawned
+    Queued --> Blocked : blocked_by_external
     Building --> Verifying : pr_created
     Building --> Queued : build_failed
+    Building --> Blocked : blocked_by_external
     Verifying --> PR_Ready : reviewer_commented
     Verifying --> Building : issues_found
+    Verifying --> Blocked : blocked_by_external
+    Blocked --> Queued : blocker_resolved
     PR_Ready --> Done : pr_merged
     PR_Ready --> Building : dev_requested_changes
 ```
@@ -40,10 +44,14 @@ Mapping to VERSO phases:
 | Phase | States |
 |-------|--------|
 | Validate | Captured, Refined |
-| Engineer | Queued, Building |
+| Engineer | Queued, Building, Blocked |
 | Review | Verifying, PR Ready |
 | Ship | Done (merged/released) |
 | Observe | Periodic activity, not a board state |
+
+**Blocked**: A work item waiting on an external dependency or factor outside the team's control. The Captain moves items to Blocked when progress cannot continue regardless of effort. When the blocker is resolved, the item returns to Queued for re-prioritization.
+
+**Cancelled**: Cancelled is a terminal state. If a previously cancelled idea becomes relevant again, create a new work item and reference the original for context continuity. Re-validating with fresh context is preferable to resurrecting stale decisions.
 
 ### Transitions
 
@@ -56,12 +64,18 @@ Every transition has a **trigger**, a **guard**, and an **actor**:
 | Captured | Cancelled | rejected_or_duplicate | none | Pilot |
 | Refined | Queued | breakdown_complete | dev_approved (if autonomy <= 2) | Pilot |
 | Queued | Building | builder_spawned | wip_limit_ok | Pilot |
+| Queued | Blocked | blocked_by_external | none | Captain |
 | Building | Verifying | pr_created | ci_passes | Builder |
 | Building | Queued | build_failed | retries_remaining | Pilot |
+| Building | Blocked | blocked_by_external | none | Captain |
 | Verifying | PR Ready | reviewer_commented | none | Reviewer |
-| Verifying | Building | issues_found | none | Reviewer - Pilot - Builder |
+| Verifying | Building | issues_found | none | Pilot |
+| Verifying | Blocked | blocked_by_external | none | Captain |
+| Blocked | Queued | blocker_resolved | none | Captain |
 | PR Ready | Done | pr_merged | none | Developer (ONLY) |
-| PR Ready | Building | dev_requested_changes | none | Developer - Pilot - Builder |
+| PR Ready | Building | dev_requested_changes | none | Pilot |
+
+> **Note on rework transitions:** For Verifying → Building, the Reviewer identifies issues but the Pilot triggers the state transition. For PR Ready → Building, the Developer requests changes but the Pilot executes the board transition. This preserves the single point of state management invariant.
 
 Key invariant: only `pr_merged` triggers the Done state. No agent ever closes issues manually.
 
@@ -92,7 +106,7 @@ Separation of concerns:
 | 3 | **PR Only** | Only PR |
 | 4 | **Full Auto** | Nothing (auto-merge for configured types) |
 
-The autonomy dial is configured per work type (feature, bug, hotfix, refactor, chore, enhancement) in `config.yaml`. Teams increase autonomy as trust builds.
+The autonomy dial is configured per work type (feature, bug, hotfix, refactor, chore) in `config.yaml`. Teams increase autonomy as trust builds.
 
 ### Scaling Model
 
@@ -175,3 +189,5 @@ The `.verso/` directory is the single unit of adoption. Copying it into any repo
 5. **The Crew never makes product decisions.** Spec approval, plan approval, and merge decisions belong to the Captain (or the Pilot at high autonomy levels, but never the Crew).
 
 6. **WIP limits prevent review backlog.** The Builder cannot start new work if the review queue exceeds the configured WIP limit. This forces the cycle to complete before new work begins.
+
+7. **Blocked items must specify a reason.** The Pilot tracks blocked items and alerts the Captain when blockers are resolved.
