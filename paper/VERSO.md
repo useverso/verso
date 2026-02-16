@@ -59,7 +59,22 @@ The developer becomes two things: a **Product Brain** (deciding what matters) an
 
 ---
 
-## 3. The VERSO Cycle
+## 3. Non-Goals
+
+VERSO is deliberate about what it does not attempt to solve:
+
+- **Team standup coordination.** VERSO has no ceremonies. The board is the communication layer.
+- **Hiring or onboarding processes.** The framework assumes a developer and their agents are ready to work.
+- **Infrastructure provisioning.** VERSO orchestrates the development lifecycle, not the deployment pipeline.
+- **Non-software projects.** The state machine and phase contracts assume code as the primary output.
+- **Replacing human judgment.** Even at Autonomy Level 4, a human configured the trust level. VERSO automates execution, not decisions.
+- **Prescribing specific tools.** The framework defines contracts. Tool selection belongs to the Implementation Layer.
+
+If your problem is not "how do I make correct decisions faster with AI agents," VERSO is probably not the right framework.
+
+---
+
+## 4. The VERSO Cycle
 
 Five macro-phases. Continuous flow. No sprints.
 
@@ -75,6 +90,22 @@ This is the creative fuzzy front end. The developer and AI act as partners: brai
 Ideas can die here -- and that is the system working correctly. A killed idea costs nothing. A built-and-discarded feature costs everything.
 
 **Output**: Either nothing (idea rejected) or a captured work item with enough context for an agent to build it.
+
+#### What constitutes a valid spec
+
+The spec is VERSO's most critical artifact. It is the input to every downstream phase. A valid spec contains:
+
+- **Problem statement:** What problem does this solve, and for whom?
+- **Acceptance criteria:** Testable assertions that define "done." Not descriptions -- assertions. ("User can log in with email and password" not "implement login functionality.")
+- **Scope boundaries:** What is explicitly out of scope for this work item.
+- **Work type:** Feature, Bug, Hotfix, or Chore -- determines the shortcut path.
+
+A spec may optionally include:
+- Technical constraints (must use existing auth library, must not add new dependencies)
+- UI/UX references (mockups, wireframes, existing patterns to follow)
+- Related items (links to previous work, dependencies)
+
+The spec does not need to include implementation details. That is the Engineer phase's job. A spec that prescribes implementation is micromanaging the agent.
 
 ### E -- Engineer
 
@@ -127,11 +158,11 @@ Not everything needs the full cycle:
 
 ---
 
-## 4. Supporting Systems
+## 5. Supporting Systems
 
 The VERSO cycle defines the primary flow. But real projects have concerns that cut across phases, processes that run in parallel, and events that enter the system from outside. These supporting systems interact with the cycle without being part of it.
 
-### 4.1 Cross-cutting Concerns
+### 5.1 Cross-cutting Concerns
 
 These are quality dimensions that span multiple VERSO phases. They are not separate phases -- they are embedded into the existing cycle as gates, checklist items, and configuration.
 
@@ -170,7 +201,7 @@ quality:
   require_tests: true        # Builder must include tests
 ```
 
-### 4.2 Parallel Processes
+### 5.2 Parallel Processes
 
 These processes run continuously alongside the VERSO cycle. They are not triggered by work items -- they generate work items.
 
@@ -196,7 +227,7 @@ dependencies:
 
 Feature flags enable partial releases -- shipping code that is not yet active for all users. In VERSO, feature flags are an Engineer-phase decision: the Pilot determines whether a work item requires a flag based on risk, size, or the developer's preference. The Builder implements the flag. Ship activates the flag for a percentage of users. Observe monitors the rollout. Full activation is a separate Chore-type work item.
 
-### 4.3 External Entry Points
+### 5.3 External Entry Points
 
 Not all work originates from the developer saying "I want to build X." Some work enters the system from external sources. VERSO defines how each source maps to the board.
 
@@ -233,13 +264,13 @@ Dependency vulnerabilities, certificate expirations, infrastructure alerts, and 
 
 ---
 
-## 5. The Automation Layer
+## 6. The Automation Layer
 
 VERSO operates at the philosophy level. It defines decisions, not implementations. But philosophy needs a bridge to reality.
 
 The Automation Layer is that bridge. It defines three distinct layers that separate what is durable from what is disposable.
 
-### 5.1 Three Layers
+### 6.1 Three Layers
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -262,7 +293,7 @@ The Automation Layer is that bridge. It defines three distinct layers that separ
 
 The Philosophy Layer is this paper. The Contracts Layer is defined below. The Implementation Layer is deliberately excluded -- it belongs to the community, to blog posts, to recipes, not to the framework.
 
-### 5.2 Phase Contracts
+### 6.2 Phase Contracts
 
 Each VERSO phase defines a contract: required inputs, expected outputs, and invariants that must hold.
 
@@ -274,7 +305,7 @@ Each VERSO phase defines a contract: required inputs, expected outputs, and inva
 | **Ship** | Reviewed PR with passing CI (or passing CI alone for work types that skip Review) | Merged code on main branch | A human merges by default. Autonomy Level 4 may enable auto-merge for explicitly configured work types. This is the single irreversible action in the cycle. For work types that skip Review (e.g., Chores), CI serves as the minimum quality gate. |
 | **Observe** | Production data, cycle metrics, cost data | Updated metrics dashboard, retrospective notes, agent prompt improvements | Learnings feed back into Validate. Metrics include agentic-specific costs (tokens, API calls, dollars per work item). |
 
-### 5.3 Contract Compliance
+### 6.3 Contract Compliance
 
 A tool is VERSO-compatible if it respects the contracts of the phase it operates in. The framework does not care which tool fulfills the contract.
 
@@ -288,7 +319,7 @@ The contract is the interface. The tool is the implementation. Implementations a
 
 ---
 
-## 6. The State Machine
+## 7. The State Machine
 
 VERSO is governed by a formal finite state machine. This is what prevents the inconsistencies and dropped-ball failures that plague ad-hoc agentic workflows.
 
@@ -366,7 +397,7 @@ WIP limits prevent the system from producing more output than the developer can 
 
 ---
 
-## 7. Roles
+## 8. Roles
 
 VERSO has exactly three roles. This is deliberate.
 
@@ -419,7 +450,7 @@ Intent classification happens in the Pilot's system prompt via routing rules, no
 
 ---
 
-## 8. The Autonomy Dial
+## 9. The Autonomy Dial
 
 Not all decisions need human approval. The Autonomy Dial is a per-work-type configuration that controls how much trust the developer places in the AI:
 
@@ -461,7 +492,7 @@ The Autonomy Dial creates a spectrum from paranoid oversight to full delegation.
 
 ---
 
-## 9. Milestones and Roadmap
+## 10. Milestones and Roadmap
 
 ### Why sprints fail for agentic development
 
@@ -510,7 +541,7 @@ The Pilot is milestone-aware at all times: it prioritizes work that closes miles
 
 ---
 
-## 10. Metrics and ROI
+## 11. Metrics and ROI
 
 ### What to measure
 
@@ -587,7 +618,7 @@ Learnings are incorporated into Builder and Reviewer prompts. The system gets sm
 
 ---
 
-## 11. Scaling
+## 12. Scaling
 
 VERSO was designed for solo developers but scales without changing its core. The state machine stays the same. What changes is roles, permissions, documentation requirements, and ceremony level.
 
@@ -653,9 +684,17 @@ In the reference implementation, each role loads a different prompt from `.verso
 | Test plan | Checklist | Checklist | QA plan | Full strategy |
 | Launch plan | Post online | Checklist | Full plan | GTM strategy |
 
+### The bus factor trade-off
+
+VERSO at solo scale has a bus factor of one. If the Captain is unavailable, the system stops. This is the same problem the framework criticizes in traditional methodologies, and it is worth acknowledging.
+
+At solo scale, this is acceptable -- a solo developer's project stops when they stop regardless of methodology. The mitigation is the board itself: because the state machine is explicit and every work item has a spec, a replacement Captain can pick up where the previous one left off with minimal context loss.
+
+At team scale, the bus factor improves naturally. Multiple developers share the Captain role with different permissions. The Pilot and Crew agents are stateless by design -- they can be restarted by any authorized Captain. The critical artifact is not the developer's knowledge but the `.verso/` configuration and the board state.
+
 ---
 
-## 12. Getting Started
+## 13. Getting Started
 
 ### For solo developers
 

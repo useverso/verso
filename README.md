@@ -1,5 +1,5 @@
+<img src="brand/verso-header.jpg" alt="VERSO">
 <p align="center">
-  <!-- <img src="brand/verso-logo.svg" alt="VERSO" width="200"> -->
   <h1 align="center">VERSO</h1>
 </p>
 
