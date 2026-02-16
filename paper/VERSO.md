@@ -123,7 +123,7 @@ Not everything needs the full cycle:
 | Enhancement | V - E - R - S - O | Full cycle, existing context |
 | Bug | V - E - R - S | Skip O unless systemic |
 | Hotfix | E - R - S | Skip V -- urgency overrides |
-| Chore | E - S | Skip V and R -- low risk |
+| Chore | E - S | Skip V and R -- low risk. CI serves as minimum quality gate in lieu of Review. |
 | Refactor | V - E - R - S - O | V = scope approval |
 
 ### 3.1 Cross-cutting Concerns
@@ -272,8 +272,8 @@ Each VERSO phase defines a contract: required inputs, expected outputs, and inva
 |-------|--------|---------|------------|
 | **Validate** | Raw idea, user feedback, or feature request | Spec with acceptance criteria, work type classification, shortcut path | No work begins without acceptance criteria. Ideas can die here. |
 | **Engineer** | Approved spec with acceptance criteria | One PR per work item with code, tests, and docs | Implementation happens in isolation (worktree/branch). The agent receives the spec, not verbal instructions. |
-| **Review** | PR diff + original spec + acceptance criteria | Informational review comment with pass/fail assessment | The reviewer evaluates against the spec, not against subjective preferences. Never auto-approves. Never auto-merges. |
-| **Ship** | Reviewed PR with passing CI | Merged code on main branch | Only a human merges. This is the single irreversible action in the cycle. |
+| **Review** | PR diff + original spec + acceptance criteria | Informational review comment with pass/fail assessment | The reviewer evaluates against the spec, not against subjective preferences. Never auto-approves. Never auto-merges (unless Autonomy Level 4 is configured for the work type). |
+| **Ship** | Reviewed PR with passing CI (or passing CI alone for work types that skip Review) | Merged code on main branch | A human merges by default. Autonomy Level 4 may enable auto-merge for explicitly configured work types. This is the single irreversible action in the cycle. For work types that skip Review (e.g., Chores), CI serves as the minimum quality gate. |
 | **Observe** | Production data, cycle metrics, cost data | Updated metrics dashboard, retrospective notes, agent prompt improvements | Learnings feed back into Validate. Metrics include agentic-specific costs (tokens, API calls, dollars per work item). |
 
 ### 4.3 Contract Compliance
@@ -282,7 +282,7 @@ A tool is VERSO-compatible if it respects the contracts of the phase it operates
 
 Examples of contract compliance:
 
-- **Review phase:** CodeRabbit, Greptile, a custom LLM script, or a human reviewer — any of these is valid as long as they receive the spec + diff and produce an informational comment without auto-merging.
+- **Review phase:** CodeRabbit, Greptile, a custom LLM script, or a human reviewer — any of these is valid as long as they receive the spec + diff and produce an informational comment without auto-merging (unless Autonomy Level 4 is configured for the work type).
 - **Observe phase:** LinearB, a GitHub Action that posts weekly metrics, or a spreadsheet — any of these is valid as long as they track the defined metrics and feed learnings back to Validate.
 - **Engineer phase:** Claude Code, Cursor, Copilot, Aider, or a junior developer — any of these is valid as long as they receive a spec and produce an isolated PR.
 
@@ -332,7 +332,7 @@ Every transition has a **trigger**, a **guard**, and an **actor**:
 | Captured | Cancelled | rejected_or_duplicate | none | Pilot |
 | Refined | Queued | breakdown_complete | dev_approved (if autonomy <= 2) | Pilot |
 | Queued | Building | builder_spawned | wip_limit_ok | Pilot |
-| Building | Verifying | pr_created | none | Builder |
+| Building | Verifying | pr_created | ci_passes | Builder |
 | Building | Queued | build_failed | retries_remaining | Pilot |
 | Verifying | PR Ready | reviewer_commented | none | Reviewer |
 | Verifying | Building | issues_found | none | Reviewer - Pilot - Builder |
@@ -417,7 +417,7 @@ flowchart LR
 | 1 | Spec, plan, every commit, PR |
 | 2 | Spec and PR (DEFAULT) |
 | 3 | Only PR |
-| 4 | Just merges (or auto-merge with confidence threshold) |
+| 4 | Nothing (auto-merge for configured types) |
 
 Configuration is per work type:
 

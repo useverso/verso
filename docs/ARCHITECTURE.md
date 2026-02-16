@@ -56,7 +56,7 @@ Every transition has a **trigger**, a **guard**, and an **actor**:
 | Captured | Cancelled | rejected_or_duplicate | none | Pilot |
 | Refined | Queued | breakdown_complete | dev_approved (if autonomy <= 2) | Pilot |
 | Queued | Building | builder_spawned | wip_limit_ok | Pilot |
-| Building | Verifying | pr_created | none | Builder |
+| Building | Verifying | pr_created | ci_passes | Builder |
 | Building | Queued | build_failed | retries_remaining | Pilot |
 | Verifying | PR Ready | reviewer_commented | none | Reviewer |
 | Verifying | Building | issues_found | none | Reviewer - Pilot - Builder |
@@ -90,7 +90,7 @@ Separation of concerns:
 | 1 | **Full Control** | Spec, plan, every commit, PR |
 | 2 | **Default** | Spec and PR |
 | 3 | **PR Only** | Only PR |
-| 4 | **Full Auto** | Just merges (or auto-merge with confidence threshold) |
+| 4 | **Full Auto** | Nothing (auto-merge for configured types) |
 
 The autonomy dial is configured per work type (feature, bug, hotfix, refactor, chore, enhancement) in `config.yaml`. Teams increase autonomy as trust builds.
 
@@ -121,8 +121,8 @@ VERSO separates durable decisions from disposable tooling through three layers.
 |-------|----------------|-----------------|----------------|
 | Validate | Raw idea, user feedback, or feature request | Spec with acceptance criteria, work type classification, shortcut path | No work starts without acceptance criteria. Ideas can die here. |
 | Engineer | Approved spec with acceptance criteria | One isolated PR per work item (code + tests + docs) | Implementation happens in isolation (worktree/branch). Agent receives spec, not verbal instructions. |
-| Review | Diff + original spec + acceptance criteria | Informational review comment with pass/fail assessment | Evaluates against spec, not subjective preferences. Never auto-approves or auto-merges. |
-| Ship | Reviewed PR + passing CI | Merged code on main | Only a human merges. Single irreversible action in the cycle. |
+| Review | Diff + original spec + acceptance criteria | Informational review comment with pass/fail assessment | Evaluates against spec, not subjective preferences. Never auto-approves or auto-merges unless Autonomy Level 4 is configured. |
+| Ship | Reviewed PR + passing CI (or CI alone for types skipping Review) | Merged code on main | A human merges by default. Autonomy Level 4 may enable auto-merge. CI is minimum quality gate when Review is skipped. |
 | Observe | Production data, cycle metrics, cost data | Updated dashboard, retrospective notes, agent prompt improvements | Learnings feed back to Validate. Metrics include agentic-specific costs (tokens, API calls, dollars per work item). |
 
 A tool is VERSO-compatible if it respects the contracts of the phase it operates in.
