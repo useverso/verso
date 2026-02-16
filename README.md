@@ -11,10 +11,6 @@
   The first development methodology designed for developers working with AI coding agents.
 </p>
 
-<!-- <p align="center">
-  <a href="https://useverso.dev">Website</a> · <a href="paper/VERSO.md">Read the Paper</a> · <a href="#quick-start">Quick Start</a>
-</p> -->
-
 ---
 
 Scrum and Kanban were built to coordinate humans writing code. If you are a developer working with AI coding agents, you have none of those problems. You have a new one: **the bottleneck moved from execution to decisions.**
@@ -108,9 +104,7 @@ This scaffolds the `.verso/` directory into your project. Your project now has:
 
 ### Step 2: Set up your board
 
-Your board is ready to go. By default, VERSO uses a local board (`board.yaml`). To connect an external provider (GitHub Projects, Linear), configure it in `config.yaml`.
-
-Configure your board provider in `config.yaml`: `local` (default, uses `board.yaml`), `github` (GitHub Projects), or `linear` (Linear). One provider per project.
+Your board is ready to go. By default, VERSO uses a local board (`board.yaml`). To connect an external provider, set the `provider` field in `config.yaml`: `local` (default), `github` (GitHub Projects), or `linear` (Linear). One provider per project.
 
 Board columns for reference:
 
@@ -136,7 +130,7 @@ The Pilot classifies your intent, routes it to the right phase, and handles the 
 |-------|--------|--------------|
 | **Validate** | Captured, Refined | Brainstorm, research feasibility, write spec, set acceptance criteria. Two sub-phases: EXPLORE (brainstorm, research, check feasibility) and DEFINE (write spec with acceptance criteria). Ideas can die here — and that is the system working correctly. |
 | **Engineer** | Queued, Building | Decompose into tasks, spawn a Builder agent in an isolated worktree. One feature branch, one PR per work item. |
-| **Review** | Verifying, PR Ready | Automated checks run. A Reviewer agent reads the diff against the original spec and writes an informational review comment. Not a formal GitHub approval -- the Reviewer writes an informational comment. The human developer makes the final judgment. |
+| **Review** | Verifying, PR Ready | Automated checks run. A Reviewer agent reads the diff against the original spec and writes an informational comment -- not a formal GitHub approval. The human developer makes the final judgment. |
 | **Ship** | Done | The developer merges the PR (or auto-merge at Autonomy Level 4). This is the ONLY trigger that closes a work item. No agent ever closes issues. For work types that skip Review (e.g., Chores), CI serves as the minimum quality gate. |
 | **Observe** | (continuous) | Metrics collection, automated retrospective at milestone completion, learnings fed back into agent prompts. |
 
@@ -144,17 +138,17 @@ Not everything needs the full cycle:
 
 | Work Type | Path | Why |
 |-----------|------|-----|
-| Feature | V - E - R - S - O | Full rigor |
+| Feature | V - E - R - S - O | Full cycle, full rigor |
 | Bug | V - E - R - S - O | Full cycle. Observe focuses on root cause analysis: was it preventable, and what process change would catch it earlier. |
 | Hotfix | E - R - S | Skip V -- urgency overrides |
 | Chore | E - S | Skip V and R -- low risk. CI serves as minimum quality gate in lieu of Review. |
-| Refactor | V - E - R - S - O | V = scope approval. Full review cycle for structural changes. |
+| Refactor | V - E - R - S - O | V = scope approval |
 
 ## Three Roles
 
 ### Captain (Developer)
 
-The human. Sets direction, makes product decisions, approves quality. Expresses intent in natural language. Merges PRs — the only irreversible action in the system. Does not write code. The framework assumes the developer delegates all implementation to Crew agents. The Captain is the brain, not the hands.
+The human. Sets direction, makes decisions, approves quality. Expresses intent in natural language. Merges PRs — the only irreversible action in the system. Does not write code. The framework assumes the developer delegates all implementation to Crew agents. The Captain is the brain, not the hands.
 
 ### Pilot (AI Orchestrator)
 
@@ -162,7 +156,7 @@ The developer's conversational partner. Classifies intent automatically, routes 
 
 ### Crew (AI Agents)
 
-Ephemeral, specialized agents spawned by the Pilot. The **Builder** receives an issue with spec and acceptance criteria, produces a PR with code, tests, and documentation. The **Reviewer** reads the diff against the original spec and writes a review comment. Two agent types. Clean separation: Crew never makes product decisions, Pilot never writes code.
+Ephemeral, specialized agents spawned by the Pilot. The **Builder** receives an issue with spec and acceptance criteria, produces a PR with code, tests, and documentation. The **Reviewer** reads the diff against the original spec and writes a review comment. Two agent types. One orchestrator. The Pilot never writes code. The Crew never makes product decisions.
 
 ## The Autonomy Dial
 
@@ -179,11 +173,11 @@ Configuration in `.verso/config.yaml`:
 
 ```yaml
 autonomy:
-  feature: 2
-  bug: 3
-  hotfix: 3
-  refactor: 2
-  chore: 4
+  feature: 2       # approve spec + PR
+  bug: 3           # approve only PR
+  hotfix: 3        # fast-track, approve only PR
+  refactor: 2      # approve scope + PR
+  chore: 4         # auto -- just merge when ready
 ```
 
 Trust starts low and grows as the system proves itself. There is no correct level — only the one that matches your risk tolerance.
@@ -241,6 +235,8 @@ The state machine stays the same at every scale. What changes is who fills each 
 | Crew | Solo crew | Shared crew | Dedicated crews | Specialized crews |
 | Board | Local board | Shared board | Team-level config | Org-level governance |
 | Code review | AI only | AI + human | Human + AI | Formal process |
+| QA | Checklist | Basic plan | QA role | QA team |
+| Docs required | Minimal | Moderate | Comprehensive | Full suite |
 | Default autonomy | 2-3 | 2 | 1-2 | 1 |
 
 Same engine, different trust configuration. See [the paper](paper/VERSO.md) for the full scaling model.
