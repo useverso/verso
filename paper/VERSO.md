@@ -735,7 +735,7 @@ your-project/
 
 **Note on `state-machine.yaml`:** The default state machine is designed to cover all standard workflows. Modifying it is an advanced operation that may break framework invariants. Most teams should use the default.
 
-The `.verso/` directory includes a `version` field in `config.yaml` that tracks the VERSO framework version used to generate it. When upgrading VERSO, run `verso migrate` to update configuration files to the latest schema. Breaking changes between versions are documented in the framework changelog. VERSO follows semantic versioning: patch versions add clarifications without changing behavior, minor versions may add new states, transitions, or configuration options with backward-compatible defaults, and major versions may change the state machine or phase contracts and require migration.
+The `.verso/` directory includes a `version` field in `config.yaml` that tracks the VERSO framework version used to generate it. When upgrading VERSO, run `verso upgrade` to update configuration files to the latest schema. Breaking changes between versions are documented in the framework changelog. VERSO follows semantic versioning: patch versions add clarifications without changing behavior, minor versions may add new states, transitions, or configuration options with backward-compatible defaults, and major versions may change the state machine or phase contracts and require migration.
 
 #### Step 2: Set up your board
 
