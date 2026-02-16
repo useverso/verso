@@ -50,6 +50,8 @@ stateDiagram-v2
     PR_Ready --> Building : dev_requested_changes
 ```
 
+> Key invariant: Building can only advance to Verifying when CI passes (`ci_passes` guard).
+
 | Phase | Purpose |
 |-------|---------|
 | **Validate** | Decide if the idea deserves to exist. Spec it or kill it. |
@@ -67,6 +69,21 @@ VERSO is organized across two repositories:
 | [`useverso/verso`](https://github.com/useverso/verso) | Framework specification, architecture docs, design decisions, roadmap, and brand assets (this repo) |
 | [`useverso/cli`](https://github.com/useverso/cli) | CLI tool (`npx @useverso/cli init`), scaffolds `.verso/` into projects, published to NPM as `@useverso/cli` |
 
+**This repository (`useverso/verso`):**
+
+```
+verso/
+├── paper/
+│   └── VERSO.md              # Authoritative framework specification
+├── docs/
+│   ├── ARCHITECTURE.md       # Terse architecture reference
+│   ├── DECISIONS.md          # Architecture Decision Records
+│   └── ROADMAP.md            # Project roadmap (NOW/NEXT/LATER)
+├── brand/
+│   └── verso-header.jpg      # Brand assets
+└── README.md
+```
+
 ## Quick Start
 
 ### Step 1: Initialize VERSO in your project
@@ -75,7 +92,9 @@ VERSO is organized across two repositories:
 npx @useverso/cli init
 ```
 
-This scaffolds the `.verso/` directory into your project. Your project now has:
+This scaffolds the `.verso/` directory into your project.
+
+**Projects using VERSO (scaffolded by CLI):**
 
 ```
 .verso/
@@ -97,6 +116,8 @@ This scaffolds the `.verso/` directory into your project. Your project now has:
     └── pr.md
 ```
 
+> Refactor work items use the Feature template (same V-E-R-S-O path).
+
 ### Step 2: Set up your board
 
 Your board is ready to go. By default, VERSO uses a local board (`board.yaml`). To connect an external provider, set the `provider` field in `config.yaml`: `local` (default), `github` (GitHub Projects), or `linear` (Linear). One provider per project.
@@ -106,6 +127,8 @@ Board columns for reference:
 ```
 Captured | Refined | Queued | Building | Blocked | Verifying | PR Ready | Done
 ```
+
+> Cancelled is a 9th terminal state for rejected or duplicate items — not shown as a board column.
 
 These map directly to the VERSO state machine. Work flows left to right. No agent can skip a state.
 
@@ -126,8 +149,8 @@ The Pilot classifies your intent, routes it to the right phase, and handles the 
 | **Validate** | Captured, Refined | Brainstorm, research feasibility, write spec, set acceptance criteria. Two sub-phases: EXPLORE (brainstorm, research, check feasibility) and DEFINE (write spec with acceptance criteria). Ideas can die here — and that is the system working correctly. |
 | **Engineer** | Queued, Building | Decompose into tasks, spawn a Builder agent in an isolated worktree. One feature branch, one PR per work item. |
 | **Review** | Verifying, PR Ready | Automated checks run. A Reviewer agent reads the diff against the original spec and writes an informational comment -- not a formal GitHub approval. The human developer makes the final judgment. |
-| **Ship** | Done | The developer merges the PR (or auto-merge at Autonomy Level 4). This is the ONLY trigger that closes a work item. No agent ever closes issues. For work types that skip Review (e.g., Chores), CI serves as the minimum quality gate. |
-| **Observe** | (continuous) | Metrics collection, automated retrospective at milestone completion, learnings fed back into agent prompts. |
+| **Ship** | Done | The developer merges the PR (or auto-merge at Level 4). No agent ever closes issues. For work types that skip Review, CI serves as the minimum quality gate. |
+| **Observe** | (continuous, not a board state) | Metrics collection, automated retrospective at milestone completion, learnings fed back into agent prompts. |
 
 Not everything needs the full cycle:
 
@@ -198,7 +221,9 @@ You:   Merge.
 ```
 You:   "Login is broken on Safari"
 Pilot: Classifies as Bug. Captures with repro context.
-       Spawns Builder to investigate and fix.
+       Writes spec with repro steps and acceptance criteria. Asks you to confirm.
+You:   "Confirmed, fix it."
+Pilot: Spawns Builder to investigate and fix.
        PR opened, Reviewer validates.
 Pilot: "Fix is ready. Safari auth cookie wasn't setting Secure flag."
 You:   Merge.
@@ -240,14 +265,16 @@ Same engine, different trust configuration. See [the paper](paper/VERSO.md) for 
 
 The complete framework is documented in [`paper/VERSO.md`](paper/VERSO.md) — covering the state machine specification, transition guards, WIP limits, milestone-driven planning, cost metrics and ROI tracking, tech debt management, the learning feedback loop, and the full scaling model.
 
+See also: [Architecture](docs/ARCHITECTURE.md) | [Design Decisions](docs/DECISIONS.md) | [Roadmap](docs/ROADMAP.md)
+
 ## The VERSO Ecosystem
 
 | Layer | What | Status |
 |-------|------|--------|
-| **Paper** | The methodology and framework specification | [`useverso/verso`](https://github.com/useverso/verso). Free forever. |
+| **Paper** | The methodology specification, architecture docs, design decisions, and project roadmap | [`useverso/verso`](https://github.com/useverso/verso). Free forever. |
 | **CLI** | Scaffolds `.verso/` into your project and manages VERSO workflows | [`useverso/cli`](https://github.com/useverso/cli). Published as `@useverso/cli` on NPM. |
 
-The framework is tool-agnostic. It works with Claude Code, Cursor, Copilot, Windsurf, or any AI coding tool.
+The framework is tool-agnostic. It works with Claude Code, Cursor, Copilot, Windsurf, or any AI coding tool. VERSO's three-layer architecture (Philosophy, Contracts, Implementation) separates stable methodology from disposable tooling -- swap any AI coding agent without rewriting your workflow.
 
 ## Contributing
 

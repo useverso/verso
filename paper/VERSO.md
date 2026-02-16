@@ -98,7 +98,7 @@ The spec is VERSO's most critical artifact. It is the input to every downstream 
 - **Problem statement:** What problem does this solve, and for whom?
 - **Acceptance criteria:** Testable assertions that define "done." Not descriptions -- assertions. ("User can log in with email and password" not "implement login functionality.")
 - **Scope boundaries:** What is explicitly out of scope for this work item.
-- **Work type:** Feature, Bug, Hotfix, or Chore -- determines the shortcut path.
+- **Work type:** Feature, Bug, Hotfix, Chore, or Refactor -- determines the shortcut path.
 
 A spec may optionally include:
 - Technical constraints (must use existing auth library, must not add new dependencies)
@@ -627,14 +627,14 @@ VERSO was designed for solo developers but scales without changing its core. The
 ### The same state machine, different permissions
 
 ```
-                  SOLO DEV     SMALL TEAM     STARTUP       ENTERPRISE
-Roles              1 (all)      2-3            5+            10+
-Pilot instances    1            per dev        per dev       per dev
-Board              local        shared/synced  per team      hierarchy
-Code review        AI only      AI + human     human + AI    formal process
-QA                 checklist    basic plan     QA role       QA team
-Docs required      minimal      moderate       comprehensive full suite
-Autonomy default   2-3          2              1-2           1
+                  SOLO DEV            SMALL TEAM     STARTUP       ENTERPRISE
+Roles              1 (all)             2-3            5+            10+
+Pilot instances    1                   per dev        per dev       per dev
+Board              local               shared/synced  per team      hierarchy
+Code review        AI + human judgment  AI + human     human + AI    formal process
+QA                 checklist            basic plan     QA role       QA team
+Docs required      minimal             moderate       comprehensive full suite
+Autonomy default   2-3                 2              1-2           1
 ```
 
 The Pilot maintains a 1:1 ratio with developers at every scale. This is by design -- each developer's intent stream requires a dedicated orchestrator.
