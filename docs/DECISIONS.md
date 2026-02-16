@@ -126,6 +126,7 @@ This document captures key architectural decisions made during the design of VER
 ## ADR-009: Pilot is the sole board state manager
 
 **Status:** Accepted
+**Date:** 2026-01-15
 
 **Context:** The state machine in the paper defines an "Actor" column for each transition. The Reviewer agent is listed as actor for `reviewer_commented` (Verifying → PR Ready) and `issues_found` (Verifying → Building). However, the Reviewer prompt says "Never move items on the board. The Pilot manages state transitions." This is a contradiction.
 
@@ -146,6 +147,7 @@ This document captures key architectural decisions made during the design of VER
 ## ADR-010: Template repo deprecated -- CLI bundles templates as single source of truth
 
 **Status:** Accepted
+**Date:** 2026-01-15
 
 **Context:** The useverso/template repo and the cli/templates/ directory both contained the `.verso/` starter files. Over time the two copies diverged significantly -- the CLI's embedded templates had grown by ~814 lines of content that the template repo was missing. The CLI already scaffolds from its own local templates and never references the template repo at runtime. Maintaining two copies creates sync bugs and confusion about which source is authoritative.
 
@@ -234,7 +236,7 @@ This document captures key architectural decisions made during the design of VER
 
 **Context:** The framework originally had Enhancement as a separate work type alongside Feature. Both followed the identical path (V-E-R-S-O) with no operational difference.
 
-**Decision:** Remove Enhancement. Merge it into Feature. The framework now has 4 core work types: Feature, Bug, Hotfix, Chore, plus Refactor.
+**Decision:** Remove Enhancement. Merge it into Feature. The framework now has 5 work types: Feature, Bug, Hotfix, Chore, and Refactor.
 
 **Consequences:** Reduced complexity. Every concept in the framework earns its place. If teams want to distinguish "new" from "improvement," they can use labels or tags -- that is metadata, not a workflow distinction.
 
