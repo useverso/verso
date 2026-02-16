@@ -31,7 +31,7 @@ Traditional methodologies assume:
 - **Communication is expensive** -- AI has perfect memory and infinite patience
 - **Context switching has cost** -- each agent session is isolated by design
 
-None of these assumptions hold. We are trying to run a Formula 1 car on horse-carriage road rules. What we need is a framework designed from scratch for the world we actually live in.
+None of these assumptions hold. Applying coordination-era methodologies to agentic development is a mismatch — not because those methodologies are bad, but because they solve a different problem. Scrum optimizes for human synchronization. VERSO optimizes for decision throughput. What we need is a framework designed from scratch for the world we actually live in.
 
 ---
 
@@ -125,7 +125,13 @@ Not everything needs the full cycle:
 | Chore | E - S | Skip V and R -- low risk. CI serves as minimum quality gate in lieu of Review. |
 | Refactor | V - E - R - S - O | V = scope approval |
 
-### 3.1 Cross-cutting Concerns
+---
+
+## 4. Supporting Systems
+
+The VERSO cycle defines the primary flow. But real projects have concerns that cut across phases, processes that run in parallel, and events that enter the system from outside. These supporting systems interact with the cycle without being part of it.
+
+### 4.1 Cross-cutting Concerns
 
 These are quality dimensions that span multiple VERSO phases. They are not separate phases — they are embedded into the existing cycle as gates, checklist items, and configuration.
 
@@ -164,7 +170,7 @@ quality:
   require_tests: true        # Builder must include tests
 ```
 
-### 3.2 Parallel Processes
+### 4.2 Parallel Processes
 
 These processes run continuously alongside the VERSO cycle. They are not triggered by work items — they generate work items.
 
@@ -190,7 +196,7 @@ dependencies:
 
 Feature flags enable partial releases — shipping code that is not yet active for all users. In VERSO, feature flags are an Engineer-phase decision: the Pilot determines whether a work item requires a flag based on risk, size, or the developer's preference. The Builder implements the flag. Ship activates the flag for a percentage of users. Observe monitors the rollout. Full activation is a separate Chore-type work item.
 
-### 3.3 External Entry Points
+### 4.3 External Entry Points
 
 Not all work originates from the developer saying "I want to build X." Some work enters the system from external sources. VERSO defines how each source maps to the board.
 
@@ -206,14 +212,7 @@ At solo dev scale, the developer forwards feedback to the Pilot conversationally
 
 **Incident Response**
 
-When production goes down, speed matters more than process. VERSO handles incidents as fast-tracked Hotfixes:
-
-1. Alert fires (monitoring, error tracking, user report)
-2. Work item auto-captured as Hotfix in Captured state
-3. Hotfix path activates: skip Validate, go directly to Engineer
-4. Builder agent fixes the issue in a dedicated worktree
-5. Reviewer does a minimal review (focus: does the fix work, does it break anything else)
-6. Developer merges immediately
+When production goes down, speed matters more than process. Hotfixes follow the shortcut path defined in Section 3 (E - R - S). The Pilot auto-captures the incident as a Hotfix work item and fast-tracks it into Engineer.
 
 Incident severity can override autonomy settings:
 
@@ -234,13 +233,13 @@ Dependency vulnerabilities, certificate expirations, infrastructure alerts, and 
 
 ---
 
-## 4. The Automation Layer
+## 5. The Automation Layer
 
 VERSO operates at the philosophy level. It defines decisions, not implementations. But philosophy needs a bridge to reality.
 
 The Automation Layer is that bridge. It defines three distinct layers that separate what is durable from what is disposable.
 
-### 4.1 Three Layers
+### 5.1 Three Layers
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -263,7 +262,7 @@ The Automation Layer is that bridge. It defines three distinct layers that separ
 
 The Philosophy Layer is this paper. The Contracts Layer is defined below. The Implementation Layer is deliberately excluded — it belongs to the community, to blog posts, to recipes, not to the framework.
 
-### 4.2 Phase Contracts
+### 5.2 Phase Contracts
 
 Each VERSO phase defines a contract: required inputs, expected outputs, and invariants that must hold.
 
@@ -275,7 +274,7 @@ Each VERSO phase defines a contract: required inputs, expected outputs, and inva
 | **Ship** | Reviewed PR with passing CI (or passing CI alone for work types that skip Review) | Merged code on main branch | A human merges by default. Autonomy Level 4 may enable auto-merge for explicitly configured work types. This is the single irreversible action in the cycle. For work types that skip Review (e.g., Chores), CI serves as the minimum quality gate. |
 | **Observe** | Production data, cycle metrics, cost data | Updated metrics dashboard, retrospective notes, agent prompt improvements | Learnings feed back into Validate. Metrics include agentic-specific costs (tokens, API calls, dollars per work item). |
 
-### 4.3 Contract Compliance
+### 5.3 Contract Compliance
 
 A tool is VERSO-compatible if it respects the contracts of the phase it operates in. The framework does not care which tool fulfills the contract.
 
@@ -289,7 +288,7 @@ The contract is the interface. The tool is the implementation. Implementations a
 
 ---
 
-## 5. The State Machine
+## 6. The State Machine
 
 VERSO is governed by a formal finite state machine. This is what prevents the inconsistencies and dropped-ball failures that plague ad-hoc agentic workflows.
 
@@ -367,7 +366,7 @@ WIP limits prevent the system from producing more output than the developer can 
 
 ---
 
-## 6. Roles
+## 7. Roles
 
 VERSO has exactly three roles. This is deliberate.
 
@@ -391,7 +390,7 @@ The developer's conversational partner. The main AI session that runs continuous
 - Reports status proactively
 - **Never writes code itself**
 
-The Pilot loads a dedicated system prompt from `.verso/agents/pilot/` (e.g., `solo-dev.md` for solo developers, `tech-lead.md` for tech leads) defining routing rules, autonomy configuration, and state machine enforcement. A shared `core.md` file contains the common logic all Pilot variants use.
+In the reference implementation, the Pilot loads a dedicated system prompt from `.verso/agents/pilot/` (e.g., `solo-dev.md` for solo developers, `tech-lead.md` for tech leads) defining routing rules, autonomy configuration, and state machine enforcement. A shared `core.md` file contains the common logic all Pilot variants use.
 
 > **Note on prompt updates:** The Pilot maintains agent prompts and configuration as part of the Observe feedback loop. Prompt updates are operational configuration, not code. When Observe produces learnings, the Captain approves prompt changes and the Pilot applies them to `.verso/agents/` files.
 
@@ -399,9 +398,9 @@ The Pilot loads a dedicated system prompt from `.verso/agents/pilot/` (e.g., `so
 
 Ephemeral, specialized agents spawned by the Pilot:
 
-**Builder Agent**: Receives an issue with spec and acceptance criteria. Produces a PR with code, tests, and documentation. Works in an isolated worktree. Loads `.verso/agents/builder.md` as its prompt.
+**Builder Agent**: Receives an issue with spec and acceptance criteria. Produces a PR with code, tests, and documentation. Works in an isolated worktree. By convention, loads `.verso/agents/builder.md` as its prompt.
 
-**Reviewer Agent**: Receives a PR and the original spec. Reads the entire diff, validates against acceptance criteria, runs automated checks. Writes an informational review comment. Loads `.verso/agents/reviewer.md` as its prompt.
+**Reviewer Agent**: Receives a PR and the original spec. Reads the entire diff, validates against acceptance criteria, runs automated checks. Writes an informational review comment. By convention, loads `.verso/agents/reviewer.md` as its prompt.
 
 Two agent types. One orchestrator. The Pilot never writes code. The Crew never makes product decisions.
 
@@ -420,13 +419,16 @@ Intent classification happens in the Pilot's system prompt via routing rules, no
 
 ---
 
-## 7. The Autonomy Dial
+## 8. The Autonomy Dial
 
 Not all decisions need human approval. The Autonomy Dial is a per-work-type configuration that controls how much trust the developer places in the AI:
 
-```mermaid
-flowchart LR
-    L1["1\nFull Control"] --- L2["2\nDefault"] --- L3["3\nPR Only"] --- L4["4\nFull Auto"]
+```
+◄─────────── Autonomy Dial ───────────►
+ 1              2              3              4
+ Full Control   Default        PR Only        Full Auto
+ (Most human    (Balanced)     (Trust the     (Minimal
+  oversight)                    agent)         oversight)
 ```
 
 | Level | Developer Approves |
@@ -459,7 +461,7 @@ The Autonomy Dial creates a spectrum from paranoid oversight to full delegation.
 
 ---
 
-## 8. Milestones and Roadmap
+## 9. Milestones and Roadmap
 
 ### Why sprints fail for agentic development
 
@@ -508,7 +510,7 @@ The Pilot is milestone-aware at all times: it prioritizes work that closes miles
 
 ---
 
-## 9. Metrics and ROI
+## 10. Metrics and ROI
 
 ### What to measure
 
@@ -538,14 +540,28 @@ This is where VERSO produces insights no traditional methodology can. Every work
 
 ```
 Example milestone report -- MVP Core (22 items):
+Traditional baseline: $13,500 (180 dev-hours at $75/hr, ~1 month elapsed)
 
+Optimistic case -- clean specs, mature codebase, capable agents:
   AI costs:        $18.30 (avg $0.83/item)
-  Dev time:        9.5 hours
-  Total cost:      $730 (at $75/hr dev rate)
+  Dev time:        9.5 hours (gate decisions + PR review)
+  Total cost:      $730
+  Reduction:       ~95%
 
-  Traditional:     $13,500 (180 dev-hours, ~1 month elapsed)
-  ROI:             94.6% cost reduction
+Typical case -- some rework, debugging, longer reviews:
+  AI costs:        $41 (avg $1.86/item, ~30% rework rate adds sessions)
+  Dev time:        22 hours (debugging agent output + deeper PR reviews)
+  Total cost:      $1,690
+  Reduction:       ~60-70%
+
+Conservative case -- significant rework, complex codebase:
+  AI costs:        $68 (avg $3.09/item, ~50% rework rate, more retries)
+  Dev time:        38 hours (substantial debugging + revision cycles)
+  Total cost:      $2,918
+  Reduction:       ~40-50%
 ```
+
+Your actual results will depend on project complexity, codebase maturity, and AI agent capability. Start by measuring your current baseline, then track improvements over the first month.
 
 ### Tech debt as a first-class metric
 
@@ -554,7 +570,7 @@ VERSO recommends a **20% debt ratio** -- roughly 1 in 5 work items should addres
 Agentic development introduces debt categories traditional methodologies do not recognize:
 
 - **Agent-generated debt**: shortcuts the AI took that a human would not
-- **Knowledge debt**: code that works but no one understands why
+- **Agent-generated opacity**: code that passes all tests but follows patterns, abstractions, or naming conventions that no team member chose or understands. Unlike human-written technical debt, agent-generated opacity can accumulate silently because the code technically works
 - **Intentional debt**: shipped for the milestone, scheduled for later
 - **Drift**: dependencies outdating, patterns diverging across the codebase
 
@@ -569,7 +585,7 @@ Learnings are incorporated into Builder and Reviewer prompts. The system gets sm
 
 ---
 
-## 10. Scaling
+## 11. Scaling
 
 VERSO was designed for solo developers but scales without changing its core. The state machine stays the same. What changes is roles, permissions, documentation requirements, and ceremony level.
 
@@ -596,6 +612,20 @@ Autonomy default   2-3          2              1-2           1
 | Ship | full | -- | full | -- |
 | Observe | full | -- | full | full |
 
+Team roles map to VERSO roles. The framework has exactly three roles -- Captain, Pilot, and Crew. At larger scales, multiple people share the Captain role with different permissions:
+
+| Team Role | VERSO Role | Permissions |
+|-----------|-----------|-------------|
+| Solo Dev | Captain (full) | All decisions: spec, review, merge |
+| Team Dev | Captain (scoped) | Spec and review within assigned areas |
+| Tech Lead | Captain (elevated) | Merge authority, architecture decisions |
+| PM/PO | Captain (validate) | Validate phase only: prioritization, spec approval |
+| AI Orchestrator | Pilot | State management, routing (unchanged at any scale) |
+| Builder Agent | Crew: Builder | Implementation (unchanged at any scale) |
+| Reviewer Agent | Crew: Reviewer | Code review (unchanged at any scale) |
+
+The Pilot and Crew roles remain identical regardless of team size. Only the Captain role splits into specialized variants.
+
 ### Team workflow
 
 In a team, each developer has their own Pilot with role-appropriate permissions:
@@ -605,7 +635,7 @@ In a team, each developer has their own Pilot with role-appropriate permissions:
 - **Team Dev's Pilot**: Engineer + Review -- build assigned tasks, create PRs
 - **QA's Pilot**: Review phase -- testing, verification, sign-off
 
-Each role loads a different prompt from `.verso/agents/pilot/` (e.g., `team-dev.md`, `tech-lead.md`, `pm.md`), all sharing `core.md` for common logic. Same state machine, different access levels.
+In the reference implementation, each role loads a different prompt from `.verso/agents/pilot/` (e.g., `team-dev.md`, `tech-lead.md`, `pm.md`), all sharing `core.md` for common logic. Same state machine, different access levels.
 
 ### Documentation expectations by scale
 
@@ -621,7 +651,7 @@ Each role loads a different prompt from `.verso/agents/pilot/` (e.g., `team-dev.
 
 ---
 
-## 11. Getting Started
+## 12. Getting Started
 
 ### For solo developers
 
@@ -663,6 +693,8 @@ your-project/
       pr.md                 # Pull request template
 ```
 
+The `.verso/` directory includes a `version` field in `config.yaml` that tracks the VERSO framework version used to generate it. When upgrading VERSO, run `verso migrate` to update configuration files to the latest schema. Breaking changes between versions are documented in the framework changelog.
+
 #### Step 2: Set up your board
 
 The local board (`.verso/board.yaml`) is ready to use out of the box -- no external service required. Your work items live in version control, right next to your code.
@@ -675,6 +707,8 @@ board:
 ```
 
 The `local` provider is the default. GitHub Projects and Linear are optional sync targets -- you can push your local board to them at any time via `verso sync`. All VERSO examples work identically regardless of which provider you choose.
+
+When using an external board provider (GitHub Projects, Linear), the external provider is the source of truth for item state. The `.verso/` configuration defines the rules; the board provider holds the live state. The Pilot reads from and writes to the configured provider. If state conflicts arise between providers, the board provider wins. Running multiple board providers simultaneously is not supported — pick one per project.
 
 #### Step 3: Start working
 
