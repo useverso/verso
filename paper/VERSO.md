@@ -189,9 +189,27 @@ Security is a Review-phase gate. The Reviewer agent's checklist includes: depend
 
 Accessibility follows the same pattern as security: a checklist item in Review at solo dev scale, a formal gate at enterprise scale. The Reviewer checks: keyboard navigation, semantic HTML, ARIA attributes, color contrast. Configuration determines whether accessibility issues block the transition or are flagged as warnings.
 
-**Testing Strategy**
+**Testing and QA Strategy**
 
-Testing is split across two phases. The Builder writes tests during Engineer (unit tests, integration tests alongside implementation). The Reviewer validates test coverage and quality during Review. Minimum coverage thresholds can be configured:
+Testing is split across two phases with clear responsibilities:
+
+**Builder: spec-driven testing.** The Builder writes tests during Engineer that map directly to the acceptance criteria from the spec. Each acceptance criterion must have at least one corresponding test. The Builder produces unit tests, integration tests, and — where specified — end-to-end tests alongside the implementation. Tests validate behavior and intent, not implementation details.
+
+**Reviewer: spec coverage validation.** During Review, the Reviewer validates that every acceptance criterion in the spec has at least one test. This is a binary check: covered or not covered. The Reviewer also evaluates test quality — are edge cases handled? Are tests brittle or resilient to refactoring?
+
+**Risk-based Human QA.** Not everything requires human testing. VERSO recommends a risk-based approach:
+
+- Always human: authentication, payments, data deletion, permissions
+- By risk level: new features > refactors > bug fixes
+- Never human: formatting, renaming, dependency bumps with green tests
+
+The Pilot can auto-generate a prioritized Human QA Checklist based on the work item's type, files changed, and risk profile.
+
+**Workflow modes.** Testing workflow is configurable per project:
+
+- **Default**: Builder writes code and tests together. Pragmatic, fast, sufficient for most projects.
+- **TDD** (roadmap): Builder writes failing tests first from the spec, then implements until tests pass. Tests-as-contract.
+- **BDD** (roadmap): Spec produces Gherkin scenarios (.feature files), Builder implements step definitions. Requirements validation before implementation.
 
 ```yaml
 quality:
@@ -199,6 +217,7 @@ quality:
   accessibility_gate: warn   # warn | block
   min_coverage: 80           # minimum test coverage percentage
   require_tests: true        # Builder must include tests
+  workflow_mode: default      # default | tdd | bdd (tdd/bdd are roadmap)
 ```
 
 ### 5.2 Parallel Processes
@@ -374,7 +393,7 @@ Every transition has a **trigger**, a **guard**, and an **actor**:
 | Building | Queued | build_failed | retries_remaining | Pilot |
 | Building | Blocked | blocked_by_external | none | Captain |
 | Verifying | PR Ready | reviewer_commented | none | Reviewer |
-| Verifying | Building | issues_found | none | Pilot |
+| Verifying | Building | issues_found | review_rounds_remaining | Pilot |
 | Verifying | Blocked | blocked_by_external | none | Captain |
 | Blocked | Queued | blocker_resolved | none | Captain |
 | PR Ready | Done | pr_merged | ci_passes | Developer (at autonomy levels 1-3) or auto-merge (at level 4) |
@@ -387,6 +406,13 @@ Every transition has a **trigger**, a **guard**, and an **actor**:
 **Blocked items must specify a reason.** The Pilot tracks blocked items and alerts the Captain when blockers are resolved.
 
 **Retry exhaustion:** When build retries are exhausted (default: 3 attempts), the Pilot transitions the item to Blocked with reason "max retries exceeded" and alerts the Captain. The Captain can then refine the spec and reset retries, manually resolve the issue, or cancel the item. Items should not remain in a perpetual retry loop.
+
+**Review rounds limit:** When the Verifying → Building cycle repeats more times than `max_review_rounds` (default: 3), the Pilot escalates to the Captain instead of re-assigning the Builder. This prevents infinite review loops where the same issues recur. The Captain can then refine the spec, manually resolve the issues, or cancel the item. Configuration:
+
+```yaml
+review:
+  max_rounds: 3              # max Verifying → Building cycles before escalation
+```
 
 **Note on the Actor column:** The Actor indicates whose action *triggers* the transition, not who updates the board. The Pilot is always the agent that executes board state changes. When the Builder creates a PR (triggering `pr_created`), the Pilot observes this and moves the item from Building to Verifying. When the Reviewer posts a comment (triggering `reviewer_commented`), the Pilot reads the verdict and moves the item accordingly. This ensures a single point of state management and prevents race conditions.
 
@@ -431,9 +457,9 @@ In the reference implementation, the Pilot loads `.verso/agents/pilot.md` as its
 
 Ephemeral, specialized agents spawned by the Pilot:
 
-**Builder Agent**: Receives an issue with spec and acceptance criteria. Produces a PR with code, tests, and documentation. Works in an isolated worktree. By convention, loads `.verso/agents/builder.md` as its prompt.
+**Builder Agent**: Receives an issue with spec and acceptance criteria. Produces a PR with code, tests, and documentation. Tests must map directly to acceptance criteria from the spec — the Builder validates behavior, not implementation details. Works in an isolated worktree. By convention, loads `.verso/agents/builder.md` as its prompt.
 
-**Reviewer Agent**: Receives a PR and the original spec. Reads the entire diff, validates against acceptance criteria, runs automated checks. Writes an informational review comment. By convention, loads `.verso/agents/reviewer.md` as its prompt.
+**Reviewer Agent**: Receives a PR and the original spec. Reads the entire diff, validates against acceptance criteria, and verifies that every acceptance criterion has at least one corresponding test. Runs automated checks. Writes an informational review comment. By convention, loads `.verso/agents/reviewer.md` as its prompt.
 
 Two agent types. One orchestrator. The Pilot never writes code. The Crew never makes product decisions.
 

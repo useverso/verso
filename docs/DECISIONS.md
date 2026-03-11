@@ -265,3 +265,61 @@ This document captures key architectural decisions made during the design of VER
 **Decision:** Define six explicit non-goals: no ceremonies, no hiring/onboarding, no infrastructure provisioning, no non-software projects, no replacement of human judgment, no tool prescription.
 
 **Consequences:** Prevents scope creep. Sets clear expectations for users. If a request falls outside these boundaries, the answer is "that is not what VERSO solves."
+
+---
+
+## ADR-019: Tester Agent Deferred
+
+**Status:** Accepted
+**Date:** 2026-03-03
+
+**Context:** During the design of gitveto (the local code review system), a third Crew agent role — the Tester — was proposed. The Tester would read the spec (not the code), write tests that validate behavior and intent, and ensure separation of concerns: the entity that writes code would not be the same entity that validates it. Three workflow modes were explored: Default (Builder + Tester in parallel), TDD (Tester writes failing tests first), and BDD (Gherkin-first from spec).
+
+**Decision:** The Tester agent is deferred. Instead, the Builder and Reviewer roles are expanded:
+
+- **Builder** now explicitly writes spec-driven tests: each acceptance criterion from the spec must have at least one corresponding test.
+- **Reviewer** now explicitly validates spec coverage: every acceptance criterion must be covered by at least one test.
+
+The separation of concerns is preserved structurally: the Builder writes code and tests, but the Reviewer (a different agent) validates that the tests actually cover the spec. No single agent both implements and approves.
+
+**Rationale:**
+
+1. The Builder already produces tests — adding a Tester creates duplication or forces the Builder to stop writing tests (degrading output quality).
+2. "Reads the spec, not the code" is theoretically clean but practically problematic — acceptance tests often need implementation details (API endpoints, DOM selectors, response structures).
+3. A third agent doubles implementation cost for uncertain quality gain. VERSO tracks cost metrics; unnecessary agents contradict this principle.
+4. The state machine becomes complex: where does the Tester fit? Parallel to Builder creates git conflicts; sequential adds latency and new states.
+5. The real insight from gitveto was review policy enforcement (different entity reviews), not testing agents. The Reviewer already satisfies this.
+
+**Re-evaluation criteria:** Revisit when there is evidence that Builder-written tests consistently fail to cover spec acceptance criteria, or when model diversity makes "different agent = genuinely different perspective" a reality.
+
+**Consequences:** VERSO maintains three roles and two Crew agents (Builder + Reviewer). State machine remains unchanged. TDD and BDD are documented as Builder workflow modes (configurable in config.yaml), not as topology changes. Testing strategy is formalized as a cross-cutting concern in Section 5.1.
+
+---
+
+## ADR-020: Schema Versioning from Day One
+
+**Status:** Accepted
+**Date:** 2026-03-03
+
+**Context:** All VERSO state is stored in YAML files (config.yaml, board.yaml, roadmap.yaml, etc.). As the framework evolves, file schemas will change — new fields, renamed keys, restructured sections. Without versioning, the CLI cannot distinguish between "old format" and "corrupted file," and migration becomes guesswork. This was identified as a unanimous recommendation during the gitveto design review: schema versioning is trivial at the start and extremely painful to retrofit.
+
+**Decision:** Every VERSO YAML file must include a `schema_version` field at the top level, starting at version 1. The CLI must:
+
+1. Read `schema_version` before processing any file
+2. Apply migrations sequentially (v1 → v2 → v3) when encountering older versions
+3. Refuse to process files with unknown future versions (forward-incompatible by design)
+
+**Consequences:** All VERSO templates include `schema_version: 1`. The CLI includes a migration system from v0.1 onward. `verso upgrade` command handles schema migrations. Files without `schema_version` are treated as pre-v1 and migrated automatically (once, for adoption).
+
+---
+
+## ADR-021: Review Rounds Limit
+
+**Status:** Accepted
+**Date:** 2026-03-03
+
+**Context:** The Verifying → Building → Verifying cycle can repeat indefinitely when the Reviewer finds issues, the Builder attempts fixes, and the Reviewer finds the same or new issues. This creates an infinite loop that wastes tokens and developer attention without converging on a solution. This was identified during the gitveto design as a concurrency and cost concern: review rounds need a ceiling.
+
+**Decision:** A configurable `max_review_rounds` (default: 3) limits the number of Verifying → Building cycles. When the limit is reached, the Pilot escalates to the Captain instead of re-spawning the Builder. A `review_rounds_remaining` guard is added to the Verifying → Building transition. The Captain can then: refine the spec, manually resolve the issues, or cancel the item.
+
+**Consequences:** State machine gains a `review_rounds_remaining` guard on the Verifying → Building transition. Configuration: `review.max_rounds` in `.verso/config.yaml`. Prevents infinite loops and runaway token costs. Forces escalation to human judgment when automated resolution fails.

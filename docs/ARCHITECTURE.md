@@ -79,7 +79,7 @@ Every transition has a **trigger**, a **guard**, and an **actor**:
 | Building | Queued | build_failed | retries_remaining | Pilot |
 | Building | Blocked | blocked_by_external | none | Captain |
 | Verifying | PR Ready | reviewer_commented | none | Reviewer |
-| Verifying | Building | issues_found | none | Pilot |
+| Verifying | Building | issues_found | review_rounds_remaining | Pilot |
 | Verifying | Blocked | blocked_by_external | none | Captain |
 | Blocked | Queued | blocker_resolved | none | Captain |
 | PR Ready | Done | pr_merged | ci_passes | Developer (at autonomy levels 1-3) or auto-merge (at level 4) |
@@ -99,8 +99,8 @@ Note on the Actor column: the Actor indicates whose action *triggers* the transi
 |------|-------|-----------------|
 | **Captain** | Developer | Product decisions, approvals, merges. Does not write code -- delegates all implementation to Crew agents. |
 | **Pilot** | AI Orchestrator | Intent classification, routing, state enforcement |
-| **Crew: Builder** | AI Agent | Worktree setup, code, tests, PR creation |
-| **Crew: Reviewer** | AI Agent | Diff analysis, spec validation, review comments |
+| **Crew: Builder** | AI Agent | Worktree setup, code, spec-driven testing (tests map to acceptance criteria), PR creation |
+| **Crew: Reviewer** | AI Agent | Diff analysis, spec validation, validates spec coverage (every criterion has a test), review comments |
 
 Separation of concerns:
 - The Pilot never writes code
@@ -123,12 +123,20 @@ The autonomy dial is configured per work type (feature, bug, hotfix, refactor, c
 Default autonomy levels:
 
 ```yaml
+schema_version: 1
+
 autonomy:
   feature: 2       # approve spec + PR
   bug: 3           # approve only PR
   hotfix: 3        # fast-track, approve only PR
   refactor: 2      # approve scope + PR
   chore: 4         # auto -- just merge when ready
+
+review:
+  max_rounds: 3
+
+quality:
+  workflow_mode: default
 ```
 
 ### Scaling Model
@@ -225,7 +233,9 @@ The `.verso/` directory is the single unit of adoption. Copying it into any repo
 | `quality` | Code quality gates (linting, type checking, formatting) |
 | `dependencies` | Dependency update policies and security scanning |
 | `incidents` | Incident response workflows and escalation rules |
+| `review` | Review loop settings (max rounds before escalation) |
 | `releases` | Semver rules, changelog generation, tag format |
+| `schema_version` | Config schema version for migration compatibility |
 
 ---
 
@@ -244,3 +254,5 @@ The `.verso/` directory is the single unit of adoption. Copying it into any repo
 6. **WIP limits prevent review backlog.** Defaults: Building = 2 concurrent, PR Ready = 5 items. The Builder cannot start new work if the review queue exceeds the configured WIP limit. This forces the cycle to complete before new work begins.
 
 7. **Blocked items must specify a reason.** The Pilot tracks blocked items and alerts the Captain when blockers are resolved.
+
+8. **Review rounds are limited (default: 3).** When exceeded, escalate to Captain.
